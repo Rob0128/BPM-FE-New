@@ -4,11 +4,11 @@ import {MyContext} from '../context/context';
 import {Types} from '../types/reducer-type';
 
 const authConfig = {
-  clientId: 'facd2be1aa6c4a9c99089141bed15e30',
+  clientId: '85a699fc623146a582314470ee52f0b3',
   // optional clien secret
   // clientSecret: 'client secret',
   redirectUrl: 'com.yourmusic://oauth/',
-  scopes: ['playlist-modify-public', 'playlist-modify-private'],
+  scopes: ['playlist-modify-public', 'playlist-modify-private', 'playlist-read-private', 'user-library-read'],
   serviceConfiguration: {
     authorizationEndpoint: 'https://accounts.spotify.com/authorize',
     tokenEndpoint: 'https://accounts.spotify.com/api/token',

@@ -2,9 +2,11 @@ import {Platform, RefreshControl, SafeAreaView, StatusBar} from 'react-native';
 import React from 'react';
 import useCurrentPlaylist from '../../hooks/use-currentPlaylist';
 import useRecommendPlaylists from '../../hooks/use-playlist';
+import useSongsInOrderBpm from '../../hooks/use-getSongsInOrderBpm';
 import {Body} from '../../components/screens/home/styled/styles';
 import YourPlaylists from '../../components/screens/home/YourPlaylists';
 import NewRelease from '../../components/screens/home/NewRelease';
+import RunningPlaylist from '../../components/screens/home/RunningPlaylist';
 import BrowseCategories from '../../components/screens/home/BrowseCategories';
 import useRefresh from '../../hooks/use-refresh';
 import styled from '@emotion/native';
@@ -15,6 +17,7 @@ const ViewPadding = styled.View`
 
 const Home = () => {
   const currentPlaylist = useCurrentPlaylist();
+  const {songsInOrderOfBpm} = useSongsInOrderBpm();
   const {newRelease, browseCategories} = useRecommendPlaylists();
   const {refreshing, onRefresh} = useRefresh();
 
@@ -40,6 +43,7 @@ const Home = () => {
           <ViewPadding />
         )}
 
+        <RunningPlaylist data={songsInOrderOfBpm} addCondition={songsInOrderOfBpm?.length} />
         <NewRelease data={newRelease} addCondition={currentPlaylist?.length} />
         <BrowseCategories data={browseCategories} />
       </Body>
