@@ -12,6 +12,36 @@ export interface CurrentPlaylist {
   };
 }
 
+export interface CurrentPlaylist {
+  id: string;
+  name: string;
+  description?: string;
+  images: [
+    {
+      url?: string;
+    },
+  ];
+  tracks: {
+    total: number;
+  };
+}
+
+export interface CurrentPlaylist2 {
+  id: string;
+  name: string;
+  description?: string;
+  track: {
+    album:{
+      images:[
+        {
+          url?: string;
+        },
+      ]
+    }
+    total: number;
+  };
+}
+
 export interface NewReleaseType {
   artists: [
     {
