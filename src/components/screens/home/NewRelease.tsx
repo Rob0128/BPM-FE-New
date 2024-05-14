@@ -32,7 +32,7 @@ const NewRelease: FC<Props> = ({data, addCondition}) => {
   return (
     <>
       <AppBar>
-        <Title>New Release</Title>
+        <Title style={styles.title}>New Release</Title>
         {addCondition ? null : (
           <TouchableOpacity
             onPress={() => navigation?.navigate('Add Playlist')}>
@@ -57,9 +57,6 @@ const NewRelease: FC<Props> = ({data, addCondition}) => {
               resizeMode="cover"
             />
 
-            <BoxTitle>
-              <TitleRelease>{item.name}</TitleRelease>
-            </BoxTitle>
           </TouchableOpacity>
         )}
       />
@@ -74,10 +71,13 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     flexWrap: 'wrap',
     marginVertical: 15,
-    marginBottom: 30,
+    marginBottom: 50,
   },
 
   cardList: {
     marginHorizontal: 10,
+  },
+  title: {
+    marginTop: 30,
   },
 });

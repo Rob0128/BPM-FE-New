@@ -11,14 +11,22 @@ export const HomeRoutes = () => {
   const Stack = createStackNavigator();
 
   return (
+    // <Stack.Navigator screenOptions={{headerShown: false}}>
+    //   <Stack.Screen name="Home" component={Home} />
+    //   <Stack.Screen
+    //     name="Detail Playlists"
+    //     component={DetailPlaylists}
+    //     options={horizontalAnimation}
+    //   />
+    // </Stack.Navigator>
     <Stack.Navigator screenOptions={{headerShown: false}}>
-      <Stack.Screen name="Home" component={Home} />
-      <Stack.Screen
-        name="Detail Playlists"
-        component={DetailPlaylists}
-        options={horizontalAnimation}
-      />
-    </Stack.Navigator>
+    <Stack.Screen name="Home" component={Home} />
+    <Stack.Screen
+      name="Select Playlists"
+      component={DetailPlaylists}
+      options={horizontalAnimation}
+    />
+  </Stack.Navigator>
   );
 };
 

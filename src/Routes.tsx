@@ -8,6 +8,9 @@ import useLogin from './hooks/use-login';
 import BottomNav from './components/bottom-navigation/BottomNav';
 import AddPlaylist from './screens/add-playlist/AddPlaylist';
 import AddSongs from './screens/add-songs/AddSongs';
+import ChoosePlaylist from './screens/choose-playlist/ChoosePlaylist';
+import TempoPage from './screens/tempo-page/TempoPage';
+
 
 const Stack = createStackNavigator();
 
@@ -40,6 +43,17 @@ const Routes = () => {
                 component={AddSongs}
                 options={verticalAnimation}
               />
+              <Stack.Screen
+                name="Choose Playlist"
+                component={ChoosePlaylist}
+                options={verticalAnimation}
+              />
+              <Stack.Screen
+                name="Tempo Page"
+                component={TempoPage}
+                options={verticalAnimation}
+                initialParams={String ? { propObject: String } : undefined} 
+                />
             </Stack.Group>
           </>
         )}

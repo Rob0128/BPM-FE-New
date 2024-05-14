@@ -21,9 +21,9 @@ const YourPlaylists: FC<Props> = ({data, refresh}) => {
     <>
       <AppBar>
         <Title>Your Playlists</Title>
-        <TouchableOpacity onPress={() => navigation?.navigate('Add Playlist')}>
+        {/* <TouchableOpacity onPress={() => navigation?.navigate('Add Playlist')}>
           <AddIcon />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </AppBar>
       <FlatList
         showsHorizontalScrollIndicator={false}
@@ -50,7 +50,6 @@ const YourPlaylists: FC<Props> = ({data, refresh}) => {
               resizeMode="cover"
             />
 
-            <PlaylistsTitle>{item.name}</PlaylistsTitle>
           </TouchableOpacity>
         )}
       />
