@@ -1,9 +1,14 @@
+import {useContext} from 'react';
 import React from 'react';
 import { StyleSheet, Text } from 'react-native';
+import { MyContext } from '../../context/context';
 
-const TempoPage = ({ propObject }: { propObject: string }) => {
+const TempoPage = () => {
+  const {state} = useContext(MyContext);
+
   return (
-    <Text>Herrrrrooo {propObject}</Text>
+    <Text>Herrrrrooo {state.testStringSavedUpdate.test_string_saved[0]}</Text>
+
   );
 };
 

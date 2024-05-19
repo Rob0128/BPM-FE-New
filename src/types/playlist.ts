@@ -42,6 +42,10 @@ export interface CurrentPlaylist2 {
   };
 }
 
+export interface SongId {
+  id: string;
+}
+
 export interface NewReleaseType {
   artists: [
     {

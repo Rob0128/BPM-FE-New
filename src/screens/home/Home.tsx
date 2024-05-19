@@ -1,5 +1,5 @@
 import { Platform, RefreshControl, SafeAreaView, StatusBar, Text, View } from 'react-native';
-import React from 'react';
+import React, { useContext, useMemo } from 'react';
 import useCurrentPlaylist from '../../hooks/use-currentPlaylist';
 import useRecommendPlaylists from '../../hooks/use-playlist';
 import useCurrentTracks from '../../hooks/use-savedTracks';
@@ -14,6 +14,8 @@ import useRefresh from '../../hooks/use-refresh';
 import styled from '@emotion/native';
 import SavedSongs from '../../components/screens/home/SavedSongs';
 import {TitleLarge} from '../../components/screens/home/styled/styles';
+import {MyContext} from '../../context/context';
+
 const ViewPadding = styled.View`
   padding: 6px 20px;
 `;
@@ -25,9 +27,16 @@ const MarginBottomView = styled.View`
 const Home = () => {
   const currentPlaylist = useCurrentPlaylist();
   const { songsInOrderOfBpm } = useSongsInOrderBpm();
-  const savedTracks = useCurrentTracks();
-  const { newRelease, browseCategories } = useRecommendPlaylists();
+  const { savedTracks } = useCurrentTracks();
+  const { newRelease, browseCategories, newSongIds } = useRecommendPlaylists();
   const { refreshing, onRefresh } = useRefresh();
+  const {state} = useContext(MyContext);
+  const emptyIds: string[] = [];
+  const handleYourSavedSongsPress = () => {
+    console.log('Your saved songs button pressed');
+  };
+  // console.log("songIds:", songIds);
+  //const songIds = savedTracks ? savedTracks.map((track) => track.id) : [];
 
   return (
     <SafeAreaView>
@@ -51,13 +60,13 @@ const Home = () => {
         ) : (
           <ViewPadding />
         )}
-
         {/* <RunningPlaylist data={songsInOrderOfBpm} /> */}
-        <SourceButton label="Your playlsits" backGroundColour='black'/>
+        <SourceButton label="Your playlsits" backGroundColour='black' />
+       {/* <Text>{newSongIds !== undefined ? newSongIds[0] : "ddd"}</Text> */}
         <SavedSongs data={savedTracks} refresh={false} />
         <SourceButton label="Your saved songs" backGroundColour='#1e1e1e'/>
         <NewRelease data={newRelease} addCondition={currentPlaylist?.length} />
-        <SourceButton label="Our recomendation" backGroundColour='black'/>
+        <SourceButton label="Our recomendation" backGroundColour='black' />
         {/* <BrowseCategories data={browseCategories} /> */}
         <MarginBottomView>
         </MarginBottomView>

@@ -1,4 +1,4 @@
-import {TouchableOpacity, FlatList, StyleSheet, View } from 'react-native';
+import {TouchableOpacity, FlatList, StyleSheet, View, Text } from 'react-native';
 import React, {FC, useContext} from 'react';
 import {
   AppBar,
@@ -10,16 +10,21 @@ import {
 import AddIcon from '../../../assets/icons/add-icon';
 import {NavigationContext} from '@react-navigation/native';
 import {CurrentPlaylist2} from '../../../types/playlist';
+import {MyContext} from '../../../context/context';
 
 type Props = {
   data: CurrentPlaylist2[] | undefined;
   refresh: boolean;
 };
 
+
 const YourSongs: FC<Props> = ({data, refresh}) => {
+    const {state} = useContext(MyContext);
+
   const navigation = useContext(NavigationContext);
   return (
     <View style={styles.container}>
+    <Text>{state.teststringUpdate.test_string} hiiii</Text>
     <AppBar>
       <TitleAlt>Your Tracks</TitleAlt>
       <TouchableOpacity onPress={() => navigation?.navigate('Add Playlist')}>

@@ -48,6 +48,14 @@ export type SnapshotUpdateType = {
   snapshot_id: string;
 };
 
+export type TestStringUpdateType = {
+  test_string: string[];
+};
+
+export type TestStringSavedUpdateType = {
+  test_string_saved: string[];
+};
+
 export type InitialState = {
   auth: AuthType;
   updateUser: UpdateUserType;
@@ -55,4 +63,6 @@ export type InitialState = {
   updatePlaylists: UpdatePlaylistsType[];
   detailPlaylists: DetailPlaylistsData;
   snapshotUpdate: SnapshotUpdateType;
+  teststringUpdate: TestStringUpdateType;
+  testStringSavedUpdate: TestStringSavedUpdateType;
 };

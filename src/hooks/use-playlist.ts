@@ -8,6 +8,7 @@ const useRecommendPlaylists = () => {
   const {state} = useContext(MyContext);
   const [newRelease, setNewRelease] = React.useState<NewReleaseType[]>();
   const [browseCategories, setBrowseCategories] = React.useState<any[]>([]);
+  const [newSongIds, setNewSongIds] = React.useState<string[]>();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -22,7 +23,12 @@ const useRecommendPlaylists = () => {
           },
         })
           .then(res => res.json())
-          .then(result => setNewRelease(result.albums.items)),
+          .then(result => {
+            setNewRelease(result.albums.items);
+            const items = result.albums.items;
+            const ids = items.map((item: { track: { id: any } }) => item.track.id);
+            setNewSongIds(ids);
+          }),
         fetch(
           'https://api.spotify.com/v1/browse/categories?country=ID&limit=20',
           {
@@ -42,6 +48,6 @@ const useRecommendPlaylists = () => {
     return () => controller.abort();
   }, [state.auth.token]);
 
-  return {newRelease, browseCategories};
+  return {newRelease, browseCategories, newSongIds};
 };
 export default useRecommendPlaylists;

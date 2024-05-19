@@ -16,6 +16,8 @@ export enum Types {
   UpdatePlaylists = 'UPDATE_PLAYLISTS',
   DetailPlaylists = 'DETAIL_PLAYLISTS',
   SnapshotUpdate = 'SNAPSHOT_UPDATE',
+  TestString = 'TEST_STRING',
+  TestStringSaved = 'TEST_STRING_SAVED',
 }
 
 export type AuthPayload = {
@@ -77,5 +79,17 @@ export type DetailPlaylistsPayload = {
 export type SnapshotUpdatePayload = {
   [Types.SnapshotUpdate]: {
     snapshot_id: string;
+  };
+};
+
+export type TestStringPayload = {
+  [Types.TestString]: {
+    test_string: string[];
+  };
+};
+
+export type TestStringSavedPayload = {
+  [Types.TestStringSaved]: {
+    test_string_saved: string[];
   };
 };

@@ -1,7 +1,10 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import styled from '@emotion/native';
 import { NavigationContext } from '@react-navigation/native';
+import {SongId} from '../../../types/playlist';
+import {MyContext} from '../../../context/context';
+import { Types } from '../../../types/reducer-type';
 
 const ButtonContainer = styled.View`
   padding-vertical: 10px;
@@ -40,7 +43,18 @@ const pageRedirect = (label: string) => {
 
 const MyButton = ({ label, backGroundColour }: Props) => {
   const navigation = useContext(NavigationContext);
+  const {state, dispatch} = useContext(MyContext);
+  // dispatch({ type: Types.TestString, payload: { test_string: selectedSongIds } });
 
+  // if(songIds === undefined){
+  //   songIds = [];
+  // }
+  // if(songIds.length > 0){
+  //   useEffect(() => {
+  //     dispatch({type: Types.TestString,  payload: {test_string: songIds[0]}});
+  
+  //   });
+  // }
   const handlePress = () => {
     if (label === 'Your playlists') {
       navigation?.navigate('Choose Playlist');

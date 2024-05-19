@@ -12,6 +12,11 @@ import {
   updatePlaylistsReducer,
   UpdateUserActions,
   updateUserReducer,
+  TestStringUpdateActions,
+  testStringUpdateReducer,
+  TestStringSavedUpdateActions,
+  testStringSavedUpdateReducer,
+
 } from '../reducers/reducers';
 import {InitialState} from '../types/context-type';
 
@@ -51,6 +56,15 @@ const contextInitialState: InitialState = {
   snapshotUpdate: {
     snapshot_id: '',
   },
+  teststringUpdate: {
+    test_string: [],
+  },
+  testStringSavedUpdate: {
+    test_string_saved: [],
+  },
+  // teststringUpdateReccomended: {
+  //   test_string_reccomended: [],
+  // },
 };
 
 const MyContext = createContext<{
@@ -62,6 +76,8 @@ const MyContext = createContext<{
     | UpdatePlaylistsActions
     | DetailPlaylistsActions
     | SnapshotUpdateActions
+    | TestStringUpdateActions
+    | TestStringSavedUpdateActions
   >;
 }>({
   state: contextInitialState,
@@ -76,6 +92,8 @@ const mainReducer = (
     updatePlaylists,
     detailPlaylists,
     snapshotUpdate,
+    teststringUpdate,
+    testStringSavedUpdate,
   }: InitialState,
   action: any,
 ) => ({
@@ -85,6 +103,9 @@ const mainReducer = (
   updatePlaylists: updatePlaylistsReducer(updatePlaylists, action),
   detailPlaylists: detailPlaylistsReducer(detailPlaylists, action),
   snapshotUpdate: snapshotUpdateReducer(snapshotUpdate, action),
+  teststringUpdate: testStringUpdateReducer(teststringUpdate, action),
+  testStringSavedUpdate: testStringSavedUpdateReducer(testStringSavedUpdate, action),
+
 });
 
 const ContextProvider: FC = ({children}) => {

@@ -5,6 +5,8 @@ import {
   SnapshotUpdateType,
   UpdatePlaylistsType,
   UpdateUserType,
+  TestStringUpdateType,
+  TestStringSavedUpdateType,
 } from '../types/context-type';
 import {
   ActionMap,
@@ -14,6 +16,8 @@ import {
   SnapshotUpdatePayload,
   UpdatePlaylistsPayload,
   UpdateUserPayload,
+  TestStringPayload,
+  TestStringSavedPayload,
 } from '../types/reducer-type';
 
 export type AuthActions = ActionMap<AuthPayload>[keyof ActionMap<AuthPayload>];
@@ -125,6 +129,44 @@ export const snapshotUpdateReducer = (
       return {
         ...state,
         snapshot_id: action.payload.snapshot_id,
+      };
+
+    default:
+      return state;
+  }
+};
+
+export type TestStringUpdateActions =
+  ActionMap<TestStringPayload>[keyof ActionMap<TestStringPayload>];
+
+export const testStringUpdateReducer = (
+  state: TestStringUpdateType,
+  action: TestStringUpdateActions,
+) => {
+  switch (action.type) {
+    case 'TEST_STRING':
+      return {
+        ...state,
+        test_string: action.payload.test_string,
+      };
+
+    default:
+      return state;
+  }
+};
+
+export type TestStringSavedUpdateActions =
+  ActionMap<TestStringSavedPayload>[keyof ActionMap<TestStringSavedPayload>];
+
+export const testStringSavedUpdateReducer = (
+  state: TestStringSavedUpdateType,
+  action: TestStringSavedUpdateActions,
+) => {
+  switch (action.type) {
+    case 'TEST_STRING_SAVED':
+      return {
+        ...state,
+        test_string_saved: action.payload.test_string_saved,
       };
 
     default:

@@ -18,10 +18,11 @@ const DetailPlaylists: FC<Props> = ({route}) => {
   const {scrollY, transformContainer, appBarTransform, onScroll} =
     useScrollDetailPlaylistsAnimation();
   const {state, dispatch} = useContext(MyContext);
-
+  const tre = "jjiii";
   useEffect(() => {
     getPlaylistsItem(route.params.data.id);
     dispatch({type: Types.DetailPlaylists, payload: route.params.data});
+    // dispatch({type: Types.TestString,  payload: {test_string: "hiiiii"}});
   }, [getPlaylistsItem, route, dispatch, state.snapshotUpdate.snapshot_id]);
 
   return (

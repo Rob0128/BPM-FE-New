@@ -1,5 +1,5 @@
 import {StyleSheet, Dimensions, FlatList, TouchableOpacity} from 'react-native';
-import React, {useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import styled from '@emotion/native';
 import LinearGradient from 'react-native-linear-gradient';
 import useCreatePlaylist from '../../hooks/use-createPlaylist';
@@ -68,6 +68,7 @@ const BottomSheet = () => {
   const {dispatch} = useContext(MyContext);
   const {createPlaylist} = useCreatePlaylist();
   const currentPlaylist = useCurrentPlaylist();
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState(''); 
 
 
   return (
@@ -89,11 +90,12 @@ const BottomSheet = () => {
         keyExtractor={item => item.id}
         renderItem={({item}) => (
           <TouchableOpacity
-            style={styles.cardList}
-            onPress={() =>
-              navigation?.navigate('Detail Playlists', {data: item})
+          style={[styles.cardList, item.id === selectedPlaylistId && styles.selectedCard]} 
+          onPress={() => {
+            setSelectedPlaylistId(item.id);
+            navigation?.navigate('Detail Playlists', { data: item });
               //basically just route to the next screen (the tempo screen) here with the 'item' which should be the selected playlist
-            }>
+          }}>
             <PlaylistsImageTrack
               source={{
                 uri:
@@ -103,7 +105,6 @@ const BottomSheet = () => {
               }}
               resizeMode="cover"
             />
-
           </TouchableOpacity>
         )}
       />
@@ -120,8 +121,9 @@ const BottomSheet = () => {
           }
         /> */}
       </Container>
-      <AddButton onPress={() => createPlaylist()}>
-        <TextButton>Create</TextButton>
+      {/* actually want to make the api call to get playlist and then all song ids and set state for them first */}
+      <AddButton onPress={() => navigation?.navigate('Tempo Page')}>
+        <TextButton>Select</TextButton>
       </AddButton>
     </LinearGradient>
   );
@@ -146,5 +148,8 @@ const styles = StyleSheet.create({
   cardList: {
     marginTop: 10,
     marginEnd: 18,
+  },
+  selectedCard: {
+    borderColor: '#fff', // Border style when the playlist is selected
   },
 });
