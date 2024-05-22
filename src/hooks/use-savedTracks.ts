@@ -35,7 +35,7 @@ const useCurrentTracks = () => {
   useEffect(() => {
     getCurrentPlaylists().then(() => {
       if (songIds !== undefined) {
-        dispatch({ type: Types.TestString, payload: { test_string: songIds } });
+        // dispatch({ type: Types.TestString, payload: { test_string: songIds } });
       } else {
         // dispatch({ type: Types.TestString, payload: { test_string: "songIds[0]" } });
       }

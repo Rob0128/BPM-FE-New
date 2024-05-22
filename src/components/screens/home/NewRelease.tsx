@@ -1,6 +1,6 @@
 import {FlatList, StyleSheet, TouchableOpacity} from 'react-native';
 import React, {FC, useContext} from 'react';
-import {BoxTitle, ImageTrack, Title} from './styled/styles';
+import {BoxTitle, ImageTrack, Title, AppBar} from './styled/styles';
 import {NewReleaseType} from '../../../types/playlist';
 import styled from '@emotion/native';
 import AddIcon from '../../../assets/icons/add-icon';
@@ -11,14 +11,6 @@ const TitleRelease = styled.Text`
   color: #ddd;
   font-family: 'PlusJakartaSans-Bold';
   width: 160px;
-`;
-
-export const AppBar = styled.View`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  background-color: #060606;
 `;
 
 type Props = {
@@ -32,13 +24,13 @@ const NewRelease: FC<Props> = ({data, addCondition}) => {
   return (
     <>
       <AppBar>
-        <Title style={styles.title}>New Release</Title>
-        {addCondition ? null : (
+        <Title>New Release</Title>
+        {/* {addCondition ? null : (
           <TouchableOpacity
             onPress={() => navigation?.navigate('Add Playlist')}>
             <AddIcon />
           </TouchableOpacity>
-        )}
+        )} */}
       </AppBar>
       <FlatList
         showsHorizontalScrollIndicator={false}
@@ -71,13 +63,11 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     flexWrap: 'wrap',
     marginVertical: 15,
-    marginBottom: 50,
+    marginBottom: 40,
   },
 
   cardList: {
     marginHorizontal: 10,
   },
-  title: {
-    marginTop: 30,
-  },
+
 });

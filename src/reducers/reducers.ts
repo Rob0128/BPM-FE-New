@@ -7,6 +7,7 @@ import {
   UpdateUserType,
   TestStringUpdateType,
   TestStringSavedUpdateType,
+  TestStringRecommendedUpdateType,
 } from '../types/context-type';
 import {
   ActionMap,
@@ -18,6 +19,7 @@ import {
   UpdateUserPayload,
   TestStringPayload,
   TestStringSavedPayload,
+  TestStringRecommendedPayload,
 } from '../types/reducer-type';
 
 export type AuthActions = ActionMap<AuthPayload>[keyof ActionMap<AuthPayload>];
@@ -167,6 +169,25 @@ export const testStringSavedUpdateReducer = (
       return {
         ...state,
         test_string_saved: action.payload.test_string_saved,
+      };
+
+    default:
+      return state;
+  }
+};
+
+export type TestStringRecommendedUpdateActions =
+  ActionMap<TestStringRecommendedPayload>[keyof ActionMap<TestStringRecommendedPayload>];
+
+export const testStringRecommendedUpdateReducer = (
+  state: TestStringRecommendedUpdateType,
+  action: TestStringRecommendedUpdateActions,
+) => {
+  switch (action.type) {
+    case 'TEST_STRING_RECOMMENDED':
+      return {
+        ...state,
+        test_string_recommended: action.payload.test_string_recommended,
       };
 
     default:

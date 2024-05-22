@@ -24,12 +24,11 @@ const YourSongs: FC<Props> = ({data, refresh}) => {
   const navigation = useContext(NavigationContext);
   return (
     <View style={styles.container}>
-    <Text>{state.teststringUpdate.test_string} hiiii</Text>
     <AppBar>
-      <TitleAlt>Your Tracks</TitleAlt>
-      <TouchableOpacity onPress={() => navigation?.navigate('Add Playlist')}>
+      <Title>Your Tracks</Title>
+      {/* <TouchableOpacity onPress={() => navigation?.navigate('Add Playlist')}>
         <AddIcon />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </AppBar>
     <FlatList
       showsHorizontalScrollIndicator={false}

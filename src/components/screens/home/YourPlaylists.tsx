@@ -67,7 +67,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   cardList: {
-    marginTop: 10,
     marginEnd: 18,
   },
 });

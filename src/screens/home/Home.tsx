@@ -13,37 +13,50 @@ import BrowseCategories from '../../components/screens/home/BrowseCategories';
 import useRefresh from '../../hooks/use-refresh';
 import styled from '@emotion/native';
 import SavedSongs from '../../components/screens/home/SavedSongs';
-import {TitleLarge} from '../../components/screens/home/styled/styles';
-import {MyContext} from '../../context/context';
+import { TitleLarge } from '../../components/screens/home/styled/styles';
+import { MyContext } from '../../context/context';
 
 const ViewPadding = styled.View`
-  padding: 6px 20px;
+  padding: 6px 0px;
 `;
 
 const MarginBottomView = styled.View`
   margin-bottom: 100px;
 `;
 
+const Card = styled.View`
+  background-color: #1e1e1e;
+  padding: 20px 16px 0px 16px;
+  margin: 10px 0;
+  border-radius: 8px;
+`;
+
+const SafeAreaViewStyled = styled(SafeAreaView)`
+  flex: 1;
+`;
+
+const BodyStyled = styled(Body)`
+  background-color: black;
+`;
+
 const Home = () => {
   const currentPlaylist = useCurrentPlaylist();
   const { songsInOrderOfBpm } = useSongsInOrderBpm();
   const { savedTracks } = useCurrentTracks();
-  const { newRelease, browseCategories, newSongIds } = useRecommendPlaylists();
+  const { newRelease, browseCategories } = useRecommendPlaylists();
   const { refreshing, onRefresh } = useRefresh();
-  const {state} = useContext(MyContext);
+  const { state } = useContext(MyContext);
   const emptyIds: string[] = [];
   const handleYourSavedSongsPress = () => {
     console.log('Your saved songs button pressed');
   };
-  // console.log("songIds:", songIds);
-  //const songIds = savedTracks ? savedTracks.map((track) => track.id) : [];
 
   return (
-    <SafeAreaView>
+    <SafeAreaViewStyled>
       {Platform.OS === 'ios' && (
         <StatusBar barStyle="light-content" translucent />
       )}
-      <Body
+      <BodyStyled
         overScrollMode="never"
         refreshControl={
           <RefreshControl
@@ -56,22 +69,27 @@ const Home = () => {
         }>
         <TitleLarge>Select the music you want to use</TitleLarge>
         {currentPlaylist?.length ? (
-          <YourPlaylists data={currentPlaylist} refresh={refreshing} />
+          <Card>
+            <YourPlaylists data={currentPlaylist} refresh={refreshing} />
+            <SourceButton label="Your playlists" backGroundColour='#1e1e1e' />
+          </Card>
         ) : (
           <ViewPadding />
         )}
         {/* <RunningPlaylist data={songsInOrderOfBpm} /> */}
-        <SourceButton label="Your playlsits" backGroundColour='black' />
-       {/* <Text>{newSongIds !== undefined ? newSongIds[0] : "ddd"}</Text> */}
-        <SavedSongs data={savedTracks} refresh={false} />
-        <SourceButton label="Your saved songs" backGroundColour='#1e1e1e'/>
-        <NewRelease data={newRelease} addCondition={currentPlaylist?.length} />
-        <SourceButton label="Our recomendation" backGroundColour='black' />
+        <Card>
+          <SavedSongs data={savedTracks} refresh={false} />
+          <SourceButton label="Your saved songs" backGroundColour='#1e1e1e'/>
+        </Card>
+        <Card>
+          <NewRelease data={newRelease} addCondition={currentPlaylist?.length} />
+          <SourceButton label="Our recommendation" backGroundColour='#1e1e1e' />
+        </Card>
         {/* <BrowseCategories data={browseCategories} /> */}
         <MarginBottomView>
         </MarginBottomView>
-      </Body>
-    </SafeAreaView>
+      </BodyStyled>
+    </SafeAreaViewStyled>
   );
 };
 

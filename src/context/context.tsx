@@ -16,7 +16,8 @@ import {
   testStringUpdateReducer,
   TestStringSavedUpdateActions,
   testStringSavedUpdateReducer,
-
+  TestStringRecommendedUpdateActions,
+  testStringRecommendedUpdateReducer,
 } from '../reducers/reducers';
 import {InitialState} from '../types/context-type';
 
@@ -62,9 +63,9 @@ const contextInitialState: InitialState = {
   testStringSavedUpdate: {
     test_string_saved: [],
   },
-  // teststringUpdateReccomended: {
-  //   test_string_reccomended: [],
-  // },
+  testStringRecommendedUpdate: {
+    test_string_recommended: [],
+  },
 };
 
 const MyContext = createContext<{
@@ -78,6 +79,7 @@ const MyContext = createContext<{
     | SnapshotUpdateActions
     | TestStringUpdateActions
     | TestStringSavedUpdateActions
+    | TestStringRecommendedUpdateActions
   >;
 }>({
   state: contextInitialState,
@@ -94,6 +96,7 @@ const mainReducer = (
     snapshotUpdate,
     teststringUpdate,
     testStringSavedUpdate,
+    testStringRecommendedUpdate,
   }: InitialState,
   action: any,
 ) => ({
@@ -105,7 +108,7 @@ const mainReducer = (
   snapshotUpdate: snapshotUpdateReducer(snapshotUpdate, action),
   teststringUpdate: testStringUpdateReducer(teststringUpdate, action),
   testStringSavedUpdate: testStringSavedUpdateReducer(testStringSavedUpdate, action),
-
+  testStringRecommendedUpdate: testStringRecommendedUpdateReducer(testStringRecommendedUpdate, action),
 });
 
 const ContextProvider: FC = ({children}) => {

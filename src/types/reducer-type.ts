@@ -18,6 +18,7 @@ export enum Types {
   SnapshotUpdate = 'SNAPSHOT_UPDATE',
   TestString = 'TEST_STRING',
   TestStringSaved = 'TEST_STRING_SAVED',
+  TestStringRecommended = 'TEST_STRING_RECOMMENDED',
 }
 
 export type AuthPayload = {
@@ -91,5 +92,11 @@ export type TestStringPayload = {
 export type TestStringSavedPayload = {
   [Types.TestStringSaved]: {
     test_string_saved: string[];
+  };
+};
+
+export type TestStringRecommendedPayload = {
+  [Types.TestStringRecommended]: {
+    test_string_recommended: string[];
   };
 };

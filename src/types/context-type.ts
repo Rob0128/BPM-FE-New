@@ -56,6 +56,10 @@ export type TestStringSavedUpdateType = {
   test_string_saved: string[];
 };
 
+export type TestStringRecommendedUpdateType = {
+  test_string_recommended: string[];
+};
+
 export type InitialState = {
   auth: AuthType;
   updateUser: UpdateUserType;
@@ -65,4 +69,6 @@ export type InitialState = {
   snapshotUpdate: SnapshotUpdateType;
   teststringUpdate: TestStringUpdateType;
   testStringSavedUpdate: TestStringSavedUpdateType;
+  testStringRecommendedUpdate: TestStringRecommendedUpdateType;
+
 };

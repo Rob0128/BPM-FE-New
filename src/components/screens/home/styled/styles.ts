@@ -11,8 +11,8 @@ export const AppBar = styled.View`
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 13px 0px 0px 0px;
-  background-color: #060606;
+  padding: 0px 0px 0px 0px;
+  background-color: #1e1e1e;
 `;
 
 export const TitleLarge = styled.Text`
@@ -29,6 +29,7 @@ export const Title = styled.Text`
   font-family: 'PlusJakartaSans-Bold';
   letter-spacing: 1px;
   color: #fff;
+  padding-bottom: 5px;
 `;
 
 export const TitleAlt = styled.Text`

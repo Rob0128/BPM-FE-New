@@ -18,7 +18,7 @@ const ButtonTouchable = styled.TouchableOpacity`
   justify-content: center;
   align-items: center;
   border-radius: 10px;
-  background-color: #5e9fa0;
+  background-color: #22B14C;
 `;
 
 const ButtonText = styled.Text`
@@ -58,7 +58,12 @@ const MyButton = ({ label, backGroundColour }: Props) => {
   const handlePress = () => {
     if (label === 'Your playlists') {
       navigation?.navigate('Choose Playlist');
-    } else {
+    } else if (label === 'Your saved songs') {
+      dispatch({type: Types.TestString,  payload: {test_string: state.testStringSavedUpdate.test_string_saved}});
+      navigation?.navigate(pageRedirect(label));
+    }
+    else{
+      dispatch({type: Types.TestString,  payload: {test_string: state.testStringRecommendedUpdate.test_string_recommended}});
       navigation?.navigate(pageRedirect(label));
     }
   };
@@ -81,6 +86,5 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 20,
     },
   });

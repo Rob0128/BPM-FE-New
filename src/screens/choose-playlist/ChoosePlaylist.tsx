@@ -1,4 +1,4 @@
-import {StyleSheet, Dimensions, FlatList, TouchableOpacity} from 'react-native';
+import {StyleSheet, Dimensions, FlatList, TouchableOpacity, Alert} from 'react-native';
 import React, {useContext, useState} from 'react';
 import styled from '@emotion/native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -65,11 +65,48 @@ const {height: SCREEN_HEIGHT} = Dimensions.get('window');
 
 const BottomSheet = () => {
   const navigation = useContext(NavigationContext);
-  const {dispatch} = useContext(MyContext);
+  const {state, dispatch} = useContext(MyContext);
   const {createPlaylist} = useCreatePlaylist();
   const currentPlaylist = useCurrentPlaylist();
-  const [selectedPlaylistId, setSelectedPlaylistId] = useState(''); 
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState('');
 
+  const handleNavigate = () => {
+    if (selectedPlaylistId) {
+      fetch(`https://api.spotify.com/v1/playlists/${selectedPlaylistId}/tracks`, {
+        headers: {
+          Authorization: `Bearer ${state.auth.token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+        .then(response => {
+          if (!response.ok) {
+            console.log('heree');
+            console.log('Response status:', response.status); // Log status code
+            console.log('Response headers:', response.headers); // Log headers
+            console.log('Response body:', response); // Log response body
+            throw new Error('Network response was not ok');
+          }
+          return response.json(); // Parse JSON data
+        })
+        .then(data => {
+          const trackIds = data.items.reduce((ids: string[], item: any) => {
+            if (item.track && item.track.id) {
+              ids.push(item.track.id);
+            }
+            return ids;
+          }, []);
+  
+          dispatch({ type: Types.TestString, payload: { test_string: trackIds } });
+          navigation?.navigate('Tempo Page');
+        })
+        .catch(error => {
+          console.error('Fetch error:', error);
+          Alert.alert('Error', 'Failed to fetch tracks. Please try again.');
+        });
+    } else {
+      Alert.alert('No Playlist Selected', 'Please select a playlist first.');
+    }
+  };
 
   return (
     <LinearGradient
@@ -81,48 +118,33 @@ const BottomSheet = () => {
       <Container>
         <CommandTitle>Choose playlist</CommandTitle>
         <FlatList
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
-        style={styles.container}
-        overScrollMode="never"
-        data={currentPlaylist}
-        horizontal={true}
-        keyExtractor={item => item.id}
-        renderItem={({item}) => (
-          <TouchableOpacity
-          style={[styles.cardList, item.id === selectedPlaylistId && styles.selectedCard]} 
-          onPress={() => {
-            setSelectedPlaylistId(item.id);
-            navigation?.navigate('Detail Playlists', { data: item });
-              //basically just route to the next screen (the tempo screen) here with the 'item' which should be the selected playlist
-          }}>
-            <PlaylistsImageTrack
-              source={{
-                uri:
-                  item?.images[0]?.url === undefined
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
+          style={styles.container}
+          overScrollMode="never"
+          data={currentPlaylist}
+          horizontal={true}
+          keyExtractor={item => item.id}
+          renderItem={({item}) => (
+            <TouchableOpacity
+              style={[styles.cardList, item.id === selectedPlaylistId && styles.selectedCard]}
+              onPress={() => {
+                setSelectedPlaylistId(item.id);
+                // navigation?.navigate('Detail Playlists', {});
+              }}>
+              <PlaylistsImageTrack
+                source={{
+                  uri: item?.images[0]?.url === undefined
                     ? 'https://user-images.githubusercontent.com/57744555/171692133-4545c152-1f12-4181-b1fc-93976bdbc326.png'
                     : item?.images[0]?.url,
-              }}
-              resizeMode="cover"
-            />
-          </TouchableOpacity>
-        )}
-      />
-        {/* <PlaylistInput
-          autoFocus={true}
-          defaultValue="My Playlist #1"
-          onChangeText={text =>
-            dispatch({
-              type: Types.InputCreatePlaylist,
-              payload: {
-                value: text,
-              },
-            })
-          }
-        /> */}
+                }}
+                resizeMode="cover"
+              />
+            </TouchableOpacity>
+          )}
+        />
       </Container>
-      {/* actually want to make the api call to get playlist and then all song ids and set state for them first */}
-      <AddButton onPress={() => navigation?.navigate('Tempo Page')}>
+      <AddButton onPress={handleNavigate}>
         <TextButton>Select</TextButton>
       </AddButton>
     </LinearGradient>
