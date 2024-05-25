@@ -133,13 +133,11 @@ const BottomSheet = () => {
                 // navigation?.navigate('Detail Playlists', {});
               }}>
               <PlaylistsImageTrack
-                source={{
-                  uri: item?.images[0]?.url === undefined
-                    ? 'https://user-images.githubusercontent.com/57744555/171692133-4545c152-1f12-4181-b1fc-93976bdbc326.png'
-                    : item?.images[0]?.url,
-                }}
-                resizeMode="cover"
-              />
+              source={{
+                uri: item?.images?.[0]?.url || 'https://user-images.githubusercontent.com/57744555/171692133-4545c152-1f12-4181-b1fc-93976bdbc326.png',
+              }}
+              resizeMode="cover"
+            />
             </TouchableOpacity>
           )}
         />

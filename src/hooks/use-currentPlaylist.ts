@@ -20,6 +20,8 @@ const useCurrentPlaylist = () => {
         },
       });
       const data = await response.json();
+      console.log('eeeeeeeerEEEEEEEEEEERRRRRRRRR');
+      console.log(data.items[0].images);
       setCurrentPlaylist([...data.items]);
     } catch (error) {
       console.log(error);

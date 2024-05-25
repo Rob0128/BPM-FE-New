@@ -1,69 +1,67 @@
 import { useContext, useState } from 'react';
 import React from 'react';
-import { StyleSheet, Text, View, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Image, ScrollView, TouchableOpacity, Button } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { MyContext } from '../../context/context';
-import { NativeStackScreenProps } from '@react-navigation/native';
+import {NavigationContext} from '@react-navigation/native';
+import { TitleLarge } from '../../components/screens/home/styled/styles';
 
-type RootStackParamList = {
-  TempoPage: undefined;
-  NextPage: { imageId: string };
-};
 
-type TempoPageProps = NativeStackScreenProps<RootStackParamList, 'TempoPage'>;
-
-const TempoPage: React.FC<TempoPageProps> = ({ navigation }) => {
+const TempoPage = () => {
   const { state } = useContext(MyContext);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
+  const navigation = useContext(NavigationContext);
 
   const handleImagePress = (id: string) => {
     setSelectedImageId(id);
   };
 
-  const handleNavigate = () => {
+  const handleNavigation = () => {
     if (selectedImageId) {
-      navigation.navigate('NextPage', { imageId: selectedImageId });
+      navigation?.navigate('Add Playlist', { id: selectedImageId });
     }
   };
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Card
-          imageSource={require('../../assets/images/trendupdown.png')}
-          text={state.teststringUpdate.test_string[0]}
-          id="trendupdown"
-          onPress={handleImagePress}
-          isSelected={selectedImageId === 'trendupdown'}
+        <TitleLarge>Choose your tempo</TitleLarge>
+        <Card 
+          imageSource={require('../../assets/images/trendupdown.png')} 
+          text={state.teststringUpdate.test_string[0]} 
+          id="trendupdown" 
+          onPress={handleImagePress} 
+          isSelected={selectedImageId === 'trendupdown'} 
         />
-        <Card
-          imageSource={require('../../assets/images/trendstraight.png')}
-          text={state.teststringUpdate.test_string[0]}
-          id="trendstraight"
-          onPress={handleImagePress}
-          isSelected={selectedImageId === 'trendstraight'}
+        <Card 
+          imageSource={require('../../assets/images/trendstraight.png')} 
+          text={state.teststringUpdate.test_string[0]} 
+          id="trendstraight" 
+          onPress={handleImagePress} 
+          isSelected={selectedImageId === 'trendstraight'} 
         />
-        <Card
-          imageSource={require('../../assets/images/trendup.png')}
-          text={state.teststringUpdate.test_string[0]}
-          id="trendup"
-          onPress={handleImagePress}
-          isSelected={selectedImageId === 'trendup'}
+        <Card 
+          imageSource={require('../../assets/images/trendup.png')} 
+          text={state.teststringUpdate.test_string[0]} 
+          id="trendup" 
+          onPress={handleImagePress} 
+          isSelected={selectedImageId === 'trendup'} 
         />
-        <Card
-          imageSource={require('../../assets/images/trenddown.png')}
-          text={state.teststringUpdate.test_string[0]}
-          id="trenddown"
-          onPress={handleImagePress}
-          isSelected={selectedImageId === 'trenddown'}
+        <Card 
+          imageSource={require('../../assets/images/trenddown.png')} 
+          text={state.teststringUpdate.test_string[0]} 
+          id="trenddown" 
+          onPress={handleImagePress} 
+          isSelected={selectedImageId === 'trenddown'} 
         />
       </ScrollView>
-      <TouchableOpacity
-        style={[styles.navigateButton, selectedImageId && styles.navigateButtonSelected]}
-        onPress={handleNavigate}
-        disabled={!selectedImageId}
-      >
-        <Text style={styles.navigateButtonText}>Navigate</Text>
-      </TouchableOpacity>
+      {selectedImageId && (
+         <View style={styles.buttonContainer}>
+         <TouchableOpacity style={styles.button} onPress={handleNavigation}>
+           <Text style={styles.buttonText}>Next</Text>
+         </TouchableOpacity>
+       </View>
+      )}
     </View>
   );
 };
@@ -78,7 +76,10 @@ type CardProps = {
 
 const Card = ({ imageSource, text, id, onPress, isSelected }: CardProps) => {
   return (
-    <TouchableOpacity style={[styles.cardContainer, isSelected && styles.selectedCard]} onPress={() => onPress(id)}>
+    <TouchableOpacity 
+      style={[styles.cardContainer, isSelected && styles.selectedCard]} 
+      onPress={() => onPress(id)}
+    >
       <Image source={imageSource} style={styles.image} resizeMode="cover" />
       <Text style={styles.text}>{text}</Text>
     </TouchableOpacity>
@@ -120,21 +121,24 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginTop: 10,
   },
-  navigateButton: {
-    backgroundColor: '#444',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    marginBottom: 20,
-    alignSelf: 'center',
-    opacity: 0.5,
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(34, 34, 34, 0.9)',
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  navigateButtonSelected: {
-    opacity: 1,
+  button: {
+    backgroundColor: '#22B14C',
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 10,
   },
-  navigateButtonText: {
+  buttonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 18,
   },
 });

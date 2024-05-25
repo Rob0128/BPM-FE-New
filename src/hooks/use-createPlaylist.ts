@@ -9,8 +9,10 @@ const useCreatePlaylist = () => {
   const {state, dispatch} = useContext(MyContext);
   const isUser = useUser();
 
-  const createPlaylist = async () => {
+  const createPlaylist = async (name:string) => {
     try {
+      console.log('SEEEEEENNDDDDDIIINNGGGGG!!!!!!!!!!!!!!');
+      console.log(name);
       Promise.all([
         fetch(`https://api.spotify.com/v1/users/${isUser?.id}/playlists`, {
           method: 'POST',
@@ -19,27 +21,14 @@ const useCreatePlaylist = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            name: state.inputCreatePlaylist.value,
+            name: name,
             description: 'New playlist description',
             public: true,
           }),
         })
           .then(res => res.json())
-          .then(result => result),
-        fetch('https://api.spotify.com/v1/me/playlists', {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${state.auth.token}`,
-            'Content-Type': 'application/json',
-          },
-        })
-          .then(res => res.json())
-          .then(result =>
-            dispatch({
-              type: Types.UpdatePlaylists,
-              payload: result.items,
-            }),
-          ),
+          .then(result => console.log(result)),
+        
       ]);
       navigation?.goBack();
     } catch (error) {
