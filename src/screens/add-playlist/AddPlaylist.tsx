@@ -1,5 +1,5 @@
 import { StyleSheet, Dimensions, ScrollView, View, Text } from 'react-native';
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import styled from '@emotion/native';
 import LinearGradient from 'react-native-linear-gradient';
 import useCreatePlaylist from '../../hooks/use-createPlaylist';
@@ -57,6 +57,13 @@ const CloseButton = styled.TouchableOpacity`
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
+type AudioFeature = {
+  id: string;
+  danceability: number;
+  energy: number;
+  tempo: number;
+};
+
 type RouteParams = {
   id: string;
 };
@@ -67,19 +74,23 @@ const BottomSheet = () => {
   const { createPlaylist } = useCreatePlaylist();
   const route = useRoute<RouteProp<{ params: RouteParams }, 'params'>>();
   const id = route?.params?.id;
+  const [playlistTitleString, setPlaylistTitleString] = useState('');
+  const [filteredAudioFeatures, setFilteredAudioFeatures] = useState<AudioFeature[]>([]);
 
-  let audioFeatures = useGetAudioFeatures();
-  // order array by lowest tempo to highest
-  audioFeatures = audioFeatures.sort((a, b) => a.tempo - b.tempo);
+  const audioFeatures = useGetAudioFeatures();
 
-  //implement this.. will need to get the tempo range passed in
-  const sortAndFilterAudioFeatures = (audioFeatures: any, criteria: { sortOrder: string; tempoRange: { min: number; max: number; }; }) => {
+  const sortAndFilterAudioFeatures = (criteria: { sortOrder: string; tempoRange: { min: number; max: number; }; }) => {
     let sortedFilteredFeatures = [...audioFeatures];
-    if (criteria.sortOrder === 'lowToHigh') {
+    console.log(criteria.sortOrder);
+
+    if (criteria.sortOrder === 'trendup') {
       sortedFilteredFeatures.sort((a, b) => a.tempo - b.tempo);
-    } else if (criteria.sortOrder === 'highToLow') {
+    } else if (criteria.sortOrder === 'trenddown') {
       sortedFilteredFeatures.sort((a, b) => b.tempo - a.tempo);
-    } else if (criteria.sortOrder === 'lowToHighBackToLow') {
+    } else if (criteria.sortOrder === 'trendstraight') {
+      sortedFilteredFeatures = sortedFilteredFeatures.filter(item => item.tempo >= 120 && item.tempo <= 140);
+      sortedFilteredFeatures.sort((a, b) => a.tempo - b.tempo);
+    } else if (criteria.sortOrder === 'trendupdown') {
       sortedFilteredFeatures.sort((a, b) => a.tempo - b.tempo);
       sortedFilteredFeatures = [
         ...sortedFilteredFeatures,
@@ -93,8 +104,33 @@ const BottomSheet = () => {
           feature.tempo <= criteria.tempoRange.max
       );
     }
+    console.log(state.teststringUpdate.test_string);
+    console.log("audioFeatures");
+    const trackIds = sortedFilteredFeatures.map((track: AudioFeature) => track.id);
+    console.log(trackIds);
+    console.log('Heerrrrreess the BEFORE');
+    console.log(state.teststringUpdate.test_string);
+
+    if (trackIds.length > 0){
+      dispatch({type: Types.TestString,  payload: {test_string: trackIds}});
+    }
+    console.log('Heerrrrreess the AFTER');
+    console.log(state.teststringUpdate.test_string);
+    console.log(sortedFilteredFeatures);
     return sortedFilteredFeatures;
   };
+
+  useEffect(() => {
+    const criteria = {
+      sortOrder: id, // Assuming id represents the sortOrder for now
+      tempoRange: {
+        min: 0,
+        max: 200 // Adjust this as needed or dynamically
+      }
+    };
+    const sortedAndFiltered = sortAndFilterAudioFeatures(criteria);
+    setFilteredAudioFeatures(sortedAndFiltered);
+  }, [id, audioFeatures]);
 
   return (
     <LinearGradient
@@ -110,20 +146,21 @@ const BottomSheet = () => {
           autoFocus={true}
           defaultValue={`Playlist #${id}`}
           onChangeText={text =>
-            dispatch({
-              type: Types.InputCreatePlaylist,
-              payload: {
-                value: text,
-              },
-            })
+            setPlaylistTitleString(text)
+            // dispatch({
+            //   type: Types.InputCreatePlaylist,
+            //   payload: {
+            //     value: text,
+            //   },
+            // })
           }
         />
       </Container>
-      <AddButton onPress={() => createPlaylist('That')}>
+      <AddButton onPress={() => createPlaylist(playlistTitleString)}>
         <TextButton>Create</TextButton>
       </AddButton>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {audioFeatures.map((feature: { id: string; danceability: boolean | React.ReactChild | React.ReactFragment | React.ReactPortal | null | undefined; energy: boolean | React.ReactChild | React.ReactFragment | React.ReactPortal | null | undefined; tempo: boolean | React.ReactChild | React.ReactFragment | React.ReactPortal | null | undefined; }) => (
+        {filteredAudioFeatures.map((feature: { id: string; danceability: boolean | React.ReactChild | React.ReactFragment | React.ReactPortal | null | undefined; energy: boolean | React.ReactChild | React.ReactFragment | React.ReactPortal | null | undefined; tempo: boolean | React.ReactChild | React.ReactFragment | React.ReactPortal | null | undefined; }) => (
           <View key={feature.id} style={styles.card}>
             <Text style={styles.text}>ID: {feature.id}</Text>
             <Text style={styles.text}>Danceability: {feature.danceability}</Text>
