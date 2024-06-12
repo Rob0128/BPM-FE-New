@@ -1,19 +1,14 @@
-import {StyleSheet, Dimensions, FlatList, TouchableOpacity, Alert, Text} from 'react-native';
-import React, {useContext, useState} from 'react';
+import { StyleSheet, Dimensions, FlatList, TouchableOpacity, Alert, Text } from 'react-native';
+import React, { useContext, useState, useEffect } from 'react';
 import styled from '@emotion/native';
 import LinearGradient from 'react-native-linear-gradient';
 import useCreatePlaylist from '../../hooks/use-createPlaylist';
-import {MyContext} from '../../context/context';
-import {Types} from '../../types/reducer-type';
+import { MyContext } from '../../context/context';
+import { Types } from '../../types/reducer-type';
 import CloseIcon from '../../assets/icons/close-icon';
-import {NavigationContext} from '@react-navigation/native';
+import { NavigationContext } from '@react-navigation/native';
 import useCurrentPlaylist from '../../hooks/use-currentPlaylist';
-import {
-  AppBar,
-  PlaylistsImageTrack,
-  PlaylistsTitle,
-  Title,
-} from '../../components/screens/home/styled/styles';
+import { AppBar, PlaylistsImageTrack, PlaylistsTitle, Title } from '../../components/screens/home/styled/styles';
 
 const PlaylistInput = styled.TextInput`
   color: #fff;
@@ -61,18 +56,24 @@ const CloseButton = styled.TouchableOpacity`
   margin-top: 3%;
 `;
 
-const {height: SCREEN_HEIGHT} = Dimensions.get('window');
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const BottomSheet = () => {
   const navigation = useContext(NavigationContext);
-  const {state, dispatch} = useContext(MyContext);
-  const {createPlaylist} = useCreatePlaylist();
+  const { state, dispatch } = useContext(MyContext);
+  const { createPlaylist } = useCreatePlaylist();
   const currentPlaylist = useCurrentPlaylist();
-  const [selectedPlaylistId, setSelectedPlaylistId] = useState('');
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>('');
+  const [selectedPlaylistUri, setSelectedPlaylistUri] = useState<string | undefined>('');
   const [selectedPlaylistName, setSelectedPlaylistName] = useState('');
 
+  useEffect(() => {
+    console.log('thishya', state.currentPlaylistIdUpdate.current_playlist_id);
+  }, [state.currentPlaylistIdUpdate.current_playlist_id]);
 
   const handleNavigate = () => {
+    dispatch({ type: Types.CurrentPlaylistId, payload: { current_playlist_id: selectedPlaylistUri } });
+
     if (selectedPlaylistId) {
       fetch(`https://api.spotify.com/v1/playlists/${selectedPlaylistId}/tracks`, {
         headers: {
@@ -99,7 +100,7 @@ const BottomSheet = () => {
           }, []);
   
           dispatch({ type: Types.TestString, payload: { test_string: trackIds } });
-          navigation?.navigate('Tempo Page');
+          navigation?.navigate('Run');
         })
         .catch(error => {
           console.error('Fetch error:', error);
@@ -127,23 +128,25 @@ const BottomSheet = () => {
           data={currentPlaylist}
           horizontal={true}
           keyExtractor={item => item.id}
-          renderItem={({item}) => (
+          renderItem={({ item }) => (
             <TouchableOpacity
               style={[styles.cardList, item.id === selectedPlaylistId && styles.selectedCard]}
               onPress={() => {
                 setSelectedPlaylistId(item.id);
+                setSelectedPlaylistUri(item.uri);
+
                 console.log('yerrt');
 
-                console.log(item.name);
+                console.log(item.uri);
                 setSelectedPlaylistName(item.name);
                 // navigation?.navigate('Detail Playlists', {});
               }}>
               <PlaylistsImageTrack
-              source={{
-                uri: item?.images?.[0]?.url || 'https://user-images.githubusercontent.com/57744555/171692133-4545c152-1f12-4181-b1fc-93976bdbc326.png',
-              }}
-              resizeMode="cover"
-            />
+                source={{
+                  uri: item?.images?.[0]?.url || 'https://user-images.githubusercontent.com/57744555/171692133-4545c152-1f12-4181-b1fc-93976bdbc326.png',
+                }}
+                resizeMode="cover"
+              />
             </TouchableOpacity>
           )}
         />

@@ -15,11 +15,14 @@ import {
   TestStringUpdateActions,
   testStringUpdateReducer,
   TestStringSavedUpdateActions,
+  CurrentPlaylistIdUpdateActions,
+  currentPlaylistIdUpdateReducer,
   testStringSavedUpdateReducer,
   TestStringRecommendedUpdateActions,
   testStringRecommendedUpdateReducer,
 } from '../reducers/reducers';
 import {InitialState} from '../types/context-type';
+import { CurrentPlaylist } from '../types/playlist';
 
 const contextInitialState: InitialState = {
   auth: {
@@ -60,6 +63,9 @@ const contextInitialState: InitialState = {
   teststringUpdate: {
     test_string: [],
   },
+  currentPlaylistIdUpdate: {
+    current_playlist_id: '',
+  },
   testStringSavedUpdate: {
     test_string_saved: [],
   },
@@ -78,6 +84,7 @@ const MyContext = createContext<{
     | DetailPlaylistsActions
     | SnapshotUpdateActions
     | TestStringUpdateActions
+    | CurrentPlaylistIdUpdateActions
     | TestStringSavedUpdateActions
     | TestStringRecommendedUpdateActions
   >;
@@ -96,6 +103,7 @@ const mainReducer = (
     snapshotUpdate,
     teststringUpdate,
     testStringSavedUpdate,
+    currentPlaylistIdUpdate,
     testStringRecommendedUpdate,
   }: InitialState,
   action: any,
@@ -107,6 +115,7 @@ const mainReducer = (
   detailPlaylists: detailPlaylistsReducer(detailPlaylists, action),
   snapshotUpdate: snapshotUpdateReducer(snapshotUpdate, action),
   teststringUpdate: testStringUpdateReducer(teststringUpdate, action),
+  currentPlaylistIdUpdate: currentPlaylistIdUpdateReducer(currentPlaylistIdUpdate, action),
   testStringSavedUpdate: testStringSavedUpdateReducer(testStringSavedUpdate, action),
   testStringRecommendedUpdate: testStringRecommendedUpdateReducer(testStringRecommendedUpdate, action),
 });

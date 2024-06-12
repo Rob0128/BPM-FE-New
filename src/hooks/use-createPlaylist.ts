@@ -52,6 +52,9 @@ const useCreatePlaylist = () => {
         });
 
         const addTracksData = await addTracksResponse.json();
+        if (addTracksData != null){
+          return "Successfully added playlist"
+        }
         console.log(addTracksData);
       }
 

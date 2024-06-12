@@ -1,4 +1,4 @@
-import { StyleSheet, Dimensions, ScrollView, View, Text } from 'react-native';
+import { StyleSheet, Dimensions, ScrollView, View, Text, Alert } from 'react-native';
 import React, { useContext, useState, useEffect } from 'react';
 import styled from '@emotion/native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -8,6 +8,8 @@ import { Types } from '../../types/reducer-type';
 import CloseIcon from '../../assets/icons/close-icon';
 import { NavigationContext, useRoute, RouteProp } from '@react-navigation/native';
 import useGetAudioFeatures from '../../hooks/use-getAudioFeatures';
+import {AudioFeature} from '../../types/playlist';
+
 
 const PlaylistInput = styled.TextInput`
   color: #fff;
@@ -57,13 +59,6 @@ const CloseButton = styled.TouchableOpacity`
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-type AudioFeature = {
-  id: string;
-  danceability: number;
-  energy: number;
-  tempo: number;
-};
-
 type RouteParams = {
   id: string;
 };
@@ -77,7 +72,7 @@ const BottomSheet = () => {
   const [playlistTitleString, setPlaylistTitleString] = useState('');
   const [filteredAudioFeatures, setFilteredAudioFeatures] = useState<AudioFeature[]>([]);
 
-  const audioFeatures = useGetAudioFeatures();
+  const {audioFeatures, loading} = useGetAudioFeatures();
 
   const sortAndFilterAudioFeatures = (criteria: { sortOrder: string; tempoRange: { min: number; max: number; }; }) => {
     let sortedFilteredFeatures = [...audioFeatures];
@@ -156,7 +151,14 @@ const BottomSheet = () => {
           }
         />
       </Container>
-      <AddButton onPress={() => createPlaylist(playlistTitleString)}>
+      <AddButton onPress={() => {
+          if (playlistTitleString) {
+            navigation?.navigate('Home');
+            createPlaylist(playlistTitleString).then(result => Alert.alert(result!));
+          } else {
+            Alert.alert('Playlist title cannot be empty');
+          }
+        }}>
         <TextButton>Create</TextButton>
       </AddButton>
       <ScrollView contentContainerStyle={styles.scrollContainer}>

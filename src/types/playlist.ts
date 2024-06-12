@@ -2,6 +2,7 @@ export interface CurrentPlaylist {
   id: string;
   name: string;
   description?: string;
+  uri?: string;
   images: [
     {
       url?: string;
@@ -113,4 +114,21 @@ export interface PlaylistSongItems {
     ];
   };
   uri?: string;
+}
+
+export interface AudioFeature {
+  id: string;
+  danceability: number;
+  energy: number;
+  tempo: number;
+}
+
+export interface PlayOptions {
+  context_uri?: string;
+  uris?: string[];
+  offset?: {
+    position?: number;
+    uri?: string;
+  };
+  position_ms?: number;
 }

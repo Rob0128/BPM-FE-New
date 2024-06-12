@@ -56,9 +56,19 @@ export type TestStringSavedUpdateType = {
   test_string_saved: string[];
 };
 
+export type CurrentPlaylistIdUpdateType = {
+  current_playlist_id: string;
+};
+
 export type TestStringRecommendedUpdateType = {
   test_string_recommended: string[];
 };
+
+// export type PlaylistSongDetailsType = {
+//   id: string;
+//   name: string;
+//   tempo: number;
+// };
 
 export type InitialState = {
   auth: AuthType;
@@ -69,8 +79,8 @@ export type InitialState = {
   snapshotUpdate: SnapshotUpdateType;
   teststringUpdate: TestStringUpdateType;
   testStringSavedUpdate: TestStringSavedUpdateType;
+  currentPlaylistIdUpdate: CurrentPlaylistIdUpdateType;
   testStringRecommendedUpdate: TestStringRecommendedUpdateType;
-
 };
 
 export type AudioFeatures = {

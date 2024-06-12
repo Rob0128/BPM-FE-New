@@ -5,6 +5,7 @@ import { AudioFeatures } from '../types/context-type';
 const useGetAudioFeatures = () => {
   const { state } = useContext(MyContext);
   const [audioFeatures, setAudioFeatures] = useState<AudioFeatures[]>([]);
+  const [loading, setLoading] = useState(true); // Add loading state
 
   const getAudioFeatures = useCallback(async (signal: AbortSignal) => {
     const ids = state.teststringUpdate.test_string;
@@ -31,27 +32,23 @@ const useGetAudioFeatures = () => {
       if ((error as Error).name !== 'AbortError') {
         console.error(error);
       }
+    } finally {
+      setLoading(false); // Ensure loading is set to false after fetching
     }
-  }, [state.auth.token]);
+  }, [state.auth.token, state.teststringUpdate.test_string]); // Include dependency on test_string
 
   useEffect(() => {
-    let isMounted = true;
     const controller = new AbortController();
     const signal = controller.signal;
 
-    getAudioFeatures(signal).then(() => {
-      if (isMounted) {
-        setAudioFeatures(audioFeatures);
-      }
-    });
+    getAudioFeatures(signal);
 
     return () => {
-      isMounted = false;
       controller.abort();
     };
   }, [getAudioFeatures]);
 
-  return audioFeatures;
+  return { audioFeatures, loading };
 };
 
 export default useGetAudioFeatures;

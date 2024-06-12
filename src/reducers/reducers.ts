@@ -7,6 +7,7 @@ import {
   UpdateUserType,
   TestStringUpdateType,
   TestStringSavedUpdateType,
+  CurrentPlaylistIdUpdateType,
   TestStringRecommendedUpdateType,
 } from '../types/context-type';
 import {
@@ -19,6 +20,7 @@ import {
   UpdateUserPayload,
   TestStringPayload,
   TestStringSavedPayload,
+  CurrentPlaylistIdPayload,
   TestStringRecommendedPayload,
 } from '../types/reducer-type';
 
@@ -169,6 +171,25 @@ export const testStringSavedUpdateReducer = (
       return {
         ...state,
         test_string_saved: action.payload.test_string_saved,
+      };
+
+    default:
+      return state;
+  }
+};
+
+export type CurrentPlaylistIdUpdateActions =
+  ActionMap<CurrentPlaylistIdPayload>[keyof ActionMap<CurrentPlaylistIdPayload>];
+
+export const currentPlaylistIdUpdateReducer = (
+  state: CurrentPlaylistIdUpdateType,
+  action: CurrentPlaylistIdUpdateActions,
+) => {
+  switch (action.type) {
+    case 'CURRENT_PLAYLIST_ID':
+      return {
+        ...state,
+        current_playlist_id: action.payload.current_playlist_id,
       };
 
     default:

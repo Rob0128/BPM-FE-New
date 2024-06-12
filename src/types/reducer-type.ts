@@ -17,8 +17,10 @@ export enum Types {
   DetailPlaylists = 'DETAIL_PLAYLISTS',
   SnapshotUpdate = 'SNAPSHOT_UPDATE',
   TestString = 'TEST_STRING',
+  CurrentPlaylistId = 'CURRENT_PLAYLIST_ID',
   TestStringSaved = 'TEST_STRING_SAVED',
   TestStringRecommended = 'TEST_STRING_RECOMMENDED',
+  AudioFeature = 'AUDIO_FEATURE'
 }
 
 export type AuthPayload = {
@@ -89,6 +91,13 @@ export type TestStringPayload = {
   };
 };
 
+export type CurrentPlaylistIdPayload = {
+  [Types.CurrentPlaylistId]: {
+    current_playlist_id: string | undefined;
+  };
+};
+
+
 export type TestStringSavedPayload = {
   [Types.TestStringSaved]: {
     test_string_saved: string[];
@@ -98,5 +107,14 @@ export type TestStringSavedPayload = {
 export type TestStringRecommendedPayload = {
   [Types.TestStringRecommended]: {
     test_string_recommended: string[];
+  };
+};
+
+export type AudioFeaturePayload = {
+  [Types.AudioFeature]: {
+      id: string;
+      danceability: number;
+      energy: number;
+      tempo: number;
   };
 };
