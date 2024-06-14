@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import { Platform, SafeAreaView, StatusBar, TouchableOpacity, Text, Dimensions, PanResponder, PanResponderInstance, Alert } from 'react-native';
+import { Platform, SafeAreaView, StatusBar, TouchableOpacity, Text, Dimensions, PanResponder, PanResponderInstance, Alert, FlatList, View, StyleSheet } from 'react-native';
 import { MyContext } from '../../context/context';
 import styled from '@emotion/native';
 import { NavigationContext } from '@react-navigation/native';
@@ -8,7 +8,9 @@ import useGetAudioFeatures from '../../hooks/use-getAudioFeatures';
 import { ButtonText } from '../../components/screens/detail-playlists/styled/styled';
 import useGetCurrentSong from '../../hooks/use-getCurrentSong';
 import useStartPlayback from '../../hooks/use-playPlaylist';
+import useFetchDevices from '../../hooks/use-fetchDevices';
 import { PlayOptions } from '../../types/playlist';
+import { Device } from '../../types/device';
 
 
 const BpmSlider = styled.View`
@@ -53,6 +55,7 @@ const Home: React.FC = () => {
   const { state } = useContext(MyContext);
   const { audioFeatures, loading } = useGetAudioFeatures();
   const { startPlayback } = useStartPlayback();
+  const { devices, fetchDevices, loading: loadingDevices, error } = useFetchDevices();
   const { currentSong, fetchCurrentSong } = useGetCurrentSong();
   const [thumbPosition, setThumbPosition] = useState(0);
   const [songName, setSongName] = useState('');
@@ -66,12 +69,12 @@ const Home: React.FC = () => {
   const screenWidth = Dimensions.get('window').width;
 
   useEffect(() => {
-    console.log(state.currentPlaylistIdUpdate.current_playlist_id);
+    fetchDevices();
 
-      po.current.context_uri = state.currentPlaylistIdUpdate.current_playlist_id;
-      po.current.position_ms = 0;
+    po.current.context_uri = state.currentPlaylistIdUpdate.current_playlist_id;
+    po.current.position_ms = 0;
     
-    console.log('FUUUCK', state.currentPlaylistIdUpdate.current_playlist_id);
+    console.log('hmm', state.currentPlaylistIdUpdate.current_playlist_id);
     console.log(po.current);
     startPlayback(po.current);
     if (audioFeatures && audioFeatures.length > 0) {
@@ -87,6 +90,10 @@ const Home: React.FC = () => {
       setSongName(sortedFeatures.current[0].id);
     }
   }, [audioFeatures, screenWidth]);
+
+  useEffect(() => {
+    console.log('devicccceesss', devices);
+  }, [devices]);
 
   useEffect(() => {
     panResponder.current = PanResponder.create({
@@ -142,6 +149,17 @@ const Home: React.FC = () => {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: 'black', justifyContent: 'center', alignItems: 'center' }}>
         <Text>Loading...</Text>
+        {/* <FlatList
+            data={devices}
+            keyExtractor={(device) => device.id}
+            renderItem={({ item }) => (
+              <View style={styles.deviceItem}>
+                <Text style={styles.deviceName}>
+                  <Text style={styles.deviceNameBold}>{item.name}</Text> ({item.type}) - Volume: {item.volume_percent}%
+                </Text>
+              </View>
+            )}
+          /> */}
       </SafeAreaView>
     );
   }
@@ -158,6 +176,7 @@ const Home: React.FC = () => {
           <SpotifyGreenButton onPress={handleChoosePress}>
             <ButtonText>Go</ButtonText>
           </SpotifyGreenButton>
+          
           <BpmSlider>
             <BpmThumb
               style={{ left: thumbPosition }}
@@ -170,5 +189,17 @@ const Home: React.FC = () => {
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  deviceItem: {
+    marginBottom: 10,
+  },
+  deviceName: {
+    color: 'white',
+  },
+  deviceNameBold: {
+    fontWeight: 'bold',
+  },
+});
 
 export default Home;
