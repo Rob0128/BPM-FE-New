@@ -20,13 +20,18 @@ const useFetchDevices = () => {
           'Content-Type': 'application/json',
         },
       });
+      console.log(response.json);
 
       if (!response.ok) {
         const errorText = await response.text();
+        console.log('errrrraaaa', errorText);
+
         throw new Error(`Request failed with status ${response.status}: ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('hhhhhhhhhhhhhhhhhhhhhhhhere', data);
+
       setDevices(data.devices);
     } catch (error) {
       console.log(error);

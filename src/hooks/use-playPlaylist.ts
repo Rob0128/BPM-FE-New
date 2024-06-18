@@ -21,7 +21,7 @@ const useStartPlayback = () => {
         return
       }
       console.log(options.context_uri);
-      const response = await fetch('https://api.spotify.com/v1/me/player/play', {
+      const response = await fetch('https://api.spotify.com/v1/me/player/play/', {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${state.auth.token}`,

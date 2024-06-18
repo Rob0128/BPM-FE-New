@@ -30,6 +30,7 @@ const useUpdateRun = () => {
 
   const updateRun = async (playlistId: string, position: number) => {
     try {
+      
       console.log('Starting Playlist...');
       console.log(`Playlist ID: ${playlistId}, Position: ${position}`);
 
@@ -41,14 +42,14 @@ const useUpdateRun = () => {
         },
         body: JSON.stringify({
           context_uri: `spotify:playlist:${playlistId}`,
-          offset: {
-            position: position,
+          "offset": {
+            "position": position,
           },
           position_ms: 0,
         }),
       };
 
-      const playResponse = await fetchWithRetry('https://api.spotify.com/v1/me/player/play', options, 3, 1000);
+      const playResponse = await fetchWithRetry(`https://api.spotify.com/v1/me/player/play/`, options, 2, 1000);
 
       if (playResponse.status === 204) {
         console.log('Playback started successfully');
@@ -57,7 +58,7 @@ const useUpdateRun = () => {
         console.log(responseData);
       }
 
-      navigation?.goBack();
+      //navigation?.goBack();
     } catch (error) {
       console.log('Error starting playback:', error);
     }

@@ -1,5 +1,20 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import { Platform, SafeAreaView, StatusBar, TouchableOpacity, Text, Dimensions, PanResponder, PanResponderInstance, Alert, FlatList, View, StyleSheet } from 'react-native';
+import {
+  Platform,
+  SafeAreaView,
+  StatusBar,
+  TouchableOpacity,
+  Text,
+  Dimensions,
+  PanResponder,
+  PanResponderInstance,
+  Alert,
+  View,
+  StyleSheet,
+  Linking,
+  AppState,
+  AppStateStatus
+} from 'react-native';
 import { MyContext } from '../../context/context';
 import styled from '@emotion/native';
 import { NavigationContext } from '@react-navigation/native';
@@ -11,7 +26,7 @@ import useStartPlayback from '../../hooks/use-playPlaylist';
 import useFetchDevices from '../../hooks/use-fetchDevices';
 import { PlayOptions } from '../../types/playlist';
 import { Device } from '../../types/device';
-
+import usePausePlayback from '../../hooks/use-pausePlaylist';
 
 const BpmSlider = styled.View`
   width: 100%;
@@ -51,7 +66,6 @@ interface AudioFeature {
 
 const Home: React.FC = () => {
   const navigation = useContext(NavigationContext);
-  const { updateRun } = useUpdateRun();
   const { state } = useContext(MyContext);
   const { audioFeatures, loading } = useGetAudioFeatures();
   const { startPlayback } = useStartPlayback();
@@ -59,24 +73,64 @@ const Home: React.FC = () => {
   const { currentSong, fetchCurrentSong } = useGetCurrentSong();
   const [thumbPosition, setThumbPosition] = useState(0);
   const [songName, setSongName] = useState('');
+  const [noDeviceWarning, setNoDeviceWarning] = useState(false);
+  const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
+  const [showGoButton, setShowGoButton] = useState(true);
+  const [hasUpdatedOnForeground, setHasUpdatedOnForeground] = useState(false);
   const panResponder = useRef<PanResponderInstance | null>(null);
   const sortedFeatures = useRef<AudioFeature[]>([]);
   const po = useRef<PlayOptions>({
     context_uri: '',
-    position_ms: 0
+    position_ms: 0,
+    offset: { position: 0 },  // Initial dummy value
   });
+  const { pausePlayback } = usePausePlayback();
+  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
 
   const screenWidth = Dimensions.get('window').width;
 
-  useEffect(() => {
-    fetchDevices();
+  const updatePlaybackOffset = () => {
+    if (currentSong && state.teststringUpdate.test_string) {
+      const currentSongId = currentSong.item.id;
+      const playlistTracks = state.teststringUpdate.test_string;
+      const index = playlistTracks.findIndex(trackId => trackId === currentSongId);
+      console.log('Index of current song:', index);
+      if (index !== -1) {
+        po.current.offset = { position: index };
+      } else {
+        po.current.offset = { position: 0 };  // Default to first song if not found
+      }
+    }
+  };
 
+  const handleDeviceSelection = (device: Device) => {
+    setSelectedDevice(device);
+    setShowGoButton(false);
+    console.log('Selected device:', device);
+  };
+
+  const handlePause = () => {
+    const deviceId = selectedDevice?.id;
+    pausePlayback(deviceId);
+  };
+
+  const handleRefreshPress = () => {
+    fetchDevices();
     po.current.context_uri = state.currentPlaylistIdUpdate.current_playlist_id;
     po.current.position_ms = 0;
-    
-    console.log('hmm', state.currentPlaylistIdUpdate.current_playlist_id);
-    console.log(po.current);
+    updatePlaybackOffset();
+
     startPlayback(po.current);
+  };
+
+  useEffect(() => {
+    fetchDevices();
+    po.current.context_uri = state.currentPlaylistIdUpdate.current_playlist_id;
+    po.current.position_ms = 0;
+    updatePlaybackOffset();
+
+    startPlayback(po.current);
+
     if (audioFeatures && audioFeatures.length > 0) {
       sortedFeatures.current = audioFeatures.sort((a, b) => a.tempo - b.tempo);
       const minBpm = sortedFeatures.current[0].tempo;
@@ -91,8 +145,53 @@ const Home: React.FC = () => {
     }
   }, [audioFeatures, screenWidth]);
 
+  const [appState, setAppState] = useState<AppStateStatus>(AppState.currentState);
+
   useEffect(() => {
-    console.log('devicccceesss', devices);
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (appState.match(/inactive|background/) && nextAppState === 'active' && !hasUpdatedOnForeground) {
+        console.log('App has come to the foreground!');
+        fetchDevices();
+        po.current.context_uri = state.currentPlaylistIdUpdate.current_playlist_id;
+        po.current.position_ms = 0;
+        fetchCurrentSong().then(() => {
+          updatePlaybackOffset();
+          startPlayback(po.current);
+        });
+        setHasUpdatedOnForeground(true);
+      }
+      setAppState(nextAppState);
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      subscription.remove();
+    };
+  }, [appState, hasUpdatedOnForeground]);
+
+  useEffect(() => {
+    console.log('Devices:', devices);
+    if (devices.length === 0) {
+      setNoDeviceWarning(true);
+    } else if (devices.length > 1) {
+      setNoDeviceWarning(false);
+      const deviceOptions = devices.map((device) => ({
+        text: device.name,
+        onPress: () => handleDeviceSelection(device),
+      }));
+
+      Alert.alert(
+        'Select Device',
+        'Please select a device to play on:',
+        deviceOptions,
+        { cancelable: true }
+      );
+    } else {
+      setNoDeviceWarning(false);
+      handleDeviceSelection(devices[0]);
+      console.log('Only one device found:', devices[0]);
+    }
   }, [devices]);
 
   useEffect(() => {
@@ -112,15 +211,22 @@ const Home: React.FC = () => {
             Math.abs(curr.tempo - bpm) < Math.abs(prev.tempo - bpm) ? curr : prev
           );
           setSongName(closestFeature.id);
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+          const newTimeoutId = setTimeout(() => {
+            handleSongChange(closestFeature.id);
+          }, 300);  // Delay of 300ms after user stops sliding
+          setTimeoutId(newTimeoutId);
         }
-      }
+      },
     });
   }, [screenWidth]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       fetchCurrentSong();
-    }, 10000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [fetchCurrentSong]);
@@ -128,38 +234,53 @@ const Home: React.FC = () => {
   useEffect(() => {
     if (currentSong && currentSong.item) {
       const currentSongId = currentSong.item.id;
-      const index = sortedFeatures.current.findIndex(feature => feature.id === currentSongId);
+      const index = sortedFeatures.current.findIndex((feature) => feature.id === currentSongId);
       if (index !== -1) {
-        const thumbPos = index / (sortedFeatures.current.length - 1) * (screenWidth - 50);
+        const thumbPos = (index / (sortedFeatures.current.length - 1)) * (screenWidth - 50);
         setThumbPosition(thumbPos);
       } else {
         // Show a popup if the song is not found in the list
-        Alert.alert('Playlist Stopped', 'The currently playing song is not in the playlist.', [{ text: 'OK' }]);
+        //Alert.alert('Playlist Stopped', 'The currently playing song is not in the playlist.', [{ text: 'OK' }]);
       }
-      //setSongName(currentSong)
       setSongName(currentSong.item.name);
     }
   }, [currentSong, sortedFeatures.current, screenWidth]);
 
   const handleChoosePress = () => {
-    updateRun('rrf', 5);
+    const spotifyLink = "spotify:track:" + state.teststringUpdate.test_string[0];
+    console.log('Spotify link:', spotifyLink);
+
+    Linking.openURL(spotifyLink).catch((err) => {
+      console.error("Failed to open Spotify link:", err);
+    });
+
+    try {
+      po.current.context_uri = state.currentPlaylistIdUpdate.current_playlist_id;
+      po.current.position_ms = 0;
+      updatePlaybackOffset();
+      startPlayback(po.current);
+      setShowGoButton(false);  // Hide the Go button after pressing
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleSongChange = (songId: string) => {
+    const index = sortedFeatures.current.findIndex((feature) => feature.id === songId);
+    if (index !== -1) {
+      po.current.offset = { position: index };
+      po.current.context_uri = state.currentPlaylistIdUpdate.current_playlist_id;
+      po.current.position_ms = 0;
+      startPlayback(po.current);
+    }
   };
 
   if (loading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: 'black', justifyContent: 'center', alignItems: 'center' }}>
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: 'black', justifyContent: 'center', alignItems: 'center' }}
+      >
         <Text>Loading...</Text>
-        {/* <FlatList
-            data={devices}
-            keyExtractor={(device) => device.id}
-            renderItem={({ item }) => (
-              <View style={styles.deviceItem}>
-                <Text style={styles.deviceName}>
-                  <Text style={styles.deviceNameBold}>{item.name}</Text> ({item.type}) - Volume: {item.volume_percent}%
-                </Text>
-              </View>
-            )}
-          /> */}
       </SafeAreaView>
     );
   }
@@ -173,10 +294,26 @@ const Home: React.FC = () => {
         </SpotifyGreenButton>
       ) : (
         <>
-          <SpotifyGreenButton onPress={handleChoosePress}>
-            <ButtonText>Go</ButtonText>
-          </SpotifyGreenButton>
-          
+          {showGoButton && !selectedDevice && (
+            <SpotifyGreenButton onPress={handleChoosePress}>
+              <ButtonText>Go</ButtonText>
+            </SpotifyGreenButton>
+          )}
+          <TouchableOpacity onPress={handlePause}>
+            <Text>Pause Playback</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handlePause}>
+            <Text>Playback</Text>
+          </TouchableOpacity>
+
+          {noDeviceWarning && (
+            <>
+              <Text>No spotify app open, please open your spotify app</Text>
+              <TouchableOpacity onPress={handleRefreshPress}>
+                <Text style={{ color: '#1DB954', marginLeft: 10 }}>Refresh</Text>
+              </TouchableOpacity>
+            </>
+          )}
           <BpmSlider>
             <BpmThumb
               style={{ left: thumbPosition }}
