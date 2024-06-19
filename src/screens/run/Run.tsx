@@ -85,9 +85,26 @@ const Home: React.FC = () => {
     offset: { position: 0 },  // Initial dummy value
   });
   const { pausePlayback } = usePausePlayback();
-  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
-
   const screenWidth = Dimensions.get('window').width;
+
+  const debounce = (func: Function, wait: number) => {
+    let timeout: ReturnType<typeof setTimeout>;
+    return (...args: any[]) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
+  };
+
+  const handleSongChange = debounce((songId: string) => {
+    const index = sortedFeatures.current.findIndex((feature) => feature.id === songId);
+    if (index !== -1) {
+      po.current.offset = { position: index };
+      po.current.context_uri = state.currentPlaylistIdUpdate.current_playlist_id;
+      po.current.position_ms = 0;
+      startPlayback(po.current);
+      setSongName(songId); // Update song name immediately when song changes
+    }
+  }, 300);
 
   const updatePlaybackOffset = () => {
     if (currentSong && state.teststringUpdate.test_string) {
@@ -119,8 +136,26 @@ const Home: React.FC = () => {
     po.current.context_uri = state.currentPlaylistIdUpdate.current_playlist_id;
     po.current.position_ms = 0;
     updatePlaybackOffset();
-
     startPlayback(po.current);
+  };
+
+  const handleChoosePress = () => {
+    const spotifyLink = "spotify:track:" + state.teststringUpdate.test_string[0];
+    console.log('Spotify link:', spotifyLink);
+
+    Linking.openURL(spotifyLink).catch((err) => {
+      console.error("Failed to open Spotify link:", err);
+    });
+
+    try {
+      po.current.context_uri = state.currentPlaylistIdUpdate.current_playlist_id;
+      po.current.position_ms = 0;
+      updatePlaybackOffset();
+      startPlayback(po.current);
+      setShowGoButton(false);  // Hide the Go button after pressing
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   useEffect(() => {
@@ -128,7 +163,6 @@ const Home: React.FC = () => {
     po.current.context_uri = state.currentPlaylistIdUpdate.current_playlist_id;
     po.current.position_ms = 0;
     updatePlaybackOffset();
-
     startPlayback(po.current);
 
     if (audioFeatures && audioFeatures.length > 0) {
@@ -211,17 +245,23 @@ const Home: React.FC = () => {
             Math.abs(curr.tempo - bpm) < Math.abs(prev.tempo - bpm) ? curr : prev
           );
           setSongName(closestFeature.id);
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-          }
-          const newTimeoutId = setTimeout(() => {
-            handleSongChange(closestFeature.id);
-          }, 300);  // Delay of 300ms after user stops sliding
-          setTimeoutId(newTimeoutId);
+          handleSongChange(closestFeature.id); // Play song as slider moves
         }
       },
     });
   }, [screenWidth]);
+
+  useEffect(() => {
+    if (currentSong && currentSong.item) {
+      const currentSongId = currentSong.item.id;
+      const index = sortedFeatures.current.findIndex((feature) => feature.id === currentSongId);
+      if (index !== -1) {
+        const thumbPos = (index / (sortedFeatures.current.length - 1)) * (screenWidth - 50);
+        setThumbPosition(thumbPos);
+      }
+      setSongName(currentSong.item.name);
+    }
+  }, [currentSong, sortedFeatures.current, screenWidth]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -231,97 +271,32 @@ const Home: React.FC = () => {
     return () => clearInterval(interval);
   }, [fetchCurrentSong]);
 
-  useEffect(() => {
-    if (currentSong && currentSong.item) {
-      const currentSongId = currentSong.item.id;
-      const index = sortedFeatures.current.findIndex((feature) => feature.id === currentSongId);
-      if (index !== -1) {
-        const thumbPos = (index / (sortedFeatures.current.length - 1)) * (screenWidth - 50);
-        setThumbPosition(thumbPos);
-      } else {
-        // Show a popup if the song is not found in the list
-        //Alert.alert('Playlist Stopped', 'The currently playing song is not in the playlist.', [{ text: 'OK' }]);
-      }
-      setSongName(currentSong.item.name);
-    }
-  }, [currentSong, sortedFeatures.current, screenWidth]);
-
-  const handleChoosePress = () => {
-    const spotifyLink = "spotify:track:" + state.teststringUpdate.test_string[0];
-    console.log('Spotify link:', spotifyLink);
-
-    Linking.openURL(spotifyLink).catch((err) => {
-      console.error("Failed to open Spotify link:", err);
-    });
-
-    try {
-      po.current.context_uri = state.currentPlaylistIdUpdate.current_playlist_id;
-      po.current.position_ms = 0;
-      updatePlaybackOffset();
-      startPlayback(po.current);
-      setShowGoButton(false);  // Hide the Go button after pressing
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const handleSongChange = (songId: string) => {
-    const index = sortedFeatures.current.findIndex((feature) => feature.id === songId);
-    if (index !== -1) {
-      po.current.offset = { position: index };
-      po.current.context_uri = state.currentPlaylistIdUpdate.current_playlist_id;
-      po.current.position_ms = 0;
-      startPlayback(po.current);
-    }
-  };
-
   if (loading) {
     return (
-      <SafeAreaView
-        style={{ flex: 1, backgroundColor: 'black', justifyContent: 'center', alignItems: 'center' }}
-      >
-        <Text>Loading...</Text>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ color: '#FFF', fontSize: 18 }}>Loading...</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'black', justifyContent: 'center', alignItems: 'center' }}>
-      {Platform.OS === 'ios' && <StatusBar barStyle="light-content" translucent />}
-      {state.teststringUpdate.test_string.length < 1 ? (
-        <SpotifyGreenButton onPress={() => navigation?.navigate('Choose Playlist Run')}>
-          <ButtonText>Choose Playlist</ButtonText>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }}>
+      <StatusBar barStyle="light-content" />
+      <Text style={{ color: '#FFF', fontSize: 20, fontWeight: 'bold', marginBottom: 20 }}>Select BPM</Text>
+      <BpmSlider {...panResponder.current?.panHandlers}>
+        <BpmThumb style={{ left: thumbPosition }} />
+      </BpmSlider>
+      <SongName>{songName}</SongName>
+      {noDeviceWarning && <Text style={{ color: '#F00' }}>No devices available. Please check your Spotify devices.</Text>}
+      {showGoButton && (
+        <SpotifyGreenButton onPress={handleChoosePress}>
+          <ButtonText>Go!</ButtonText>
         </SpotifyGreenButton>
-      ) : (
-        <>
-          {showGoButton && !selectedDevice && (
-            <SpotifyGreenButton onPress={handleChoosePress}>
-              <ButtonText>Go</ButtonText>
-            </SpotifyGreenButton>
-          )}
-          <TouchableOpacity onPress={handlePause}>
-            <Text>Pause Playback</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handlePause}>
-            <Text>Playback</Text>
-          </TouchableOpacity>
-
-          {noDeviceWarning && (
-            <>
-              <Text>No spotify app open, please open your spotify app</Text>
-              <TouchableOpacity onPress={handleRefreshPress}>
-                <Text style={{ color: '#1DB954', marginLeft: 10 }}>Refresh</Text>
-              </TouchableOpacity>
-            </>
-          )}
-          <BpmSlider>
-            <BpmThumb
-              style={{ left: thumbPosition }}
-              {...(panResponder.current ? panResponder.current.panHandlers : {})}
-            />
-          </BpmSlider>
-          <SongName>{songName}</SongName>
-        </>
+      )}
+      {!showGoButton && (
+        <TouchableOpacity onPress={handlePause} style={styles.pauseButton}>
+          <Text style={{ color: '#FFF' }}>Pause Playback</Text>
+        </TouchableOpacity>
       )}
     </SafeAreaView>
   );
@@ -336,6 +311,13 @@ const styles = StyleSheet.create({
   },
   deviceNameBold: {
     fontWeight: 'bold',
+  },
+  pauseButton: {
+    backgroundColor: '#1DB954',
+    padding: 15,
+    borderRadius: 25,
+    marginTop: 20,
+    alignItems: 'center',
   },
 });
 
