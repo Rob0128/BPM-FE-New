@@ -188,32 +188,26 @@ const Home: React.FC = () => {
   };
 
   useEffect(() => {
-    panResponder.current = PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onPanResponderMove: (event, gestureState) => {
-        const thumbPos = Math.max(0, Math.min(gestureState.moveX, screenWidth - 50));
-        setThumbPosition(thumbPos);
-
-        if (sortedFeatures.current.length > 0) {
-          const minBpm = sortedFeatures.current[0].tempo;
-          const maxBpm = sortedFeatures.current[sortedFeatures.current.length - 1].tempo;
-          const bpmRange = maxBpm - minBpm;
-          const bpmNormalized = thumbPos / (screenWidth - 50);
-          const bpm = minBpm + bpmNormalized * bpmRange;
-          const closestFeature = sortedFeatures.current.reduce((prev, curr) =>
-            Math.abs(curr.tempo - bpm) < Math.abs(prev.tempo - bpm) ? curr : prev
-          );
-          handleSongChange(closestFeature.id); // Play song as slider moves
-        }
-      },
-    });
-  }, [screenWidth]);
-
-  useEffect(() => {
     if (currentSong && currentSong.item) {
       updateThumbPositionAndSong(currentSong.item.id);
     }
   }, [currentSong, screenWidth]);
+  
+useEffect(() => {
+  panResponder.current = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onPanResponderMove: (event, gestureState) => {
+      const thumbPos = Math.max(0, Math.min(gestureState.moveX, screenWidth - 50));
+      setThumbPosition(thumbPos);
+
+      if (sortedFeatures.current.length > 0) {
+        const index = Math.round((thumbPos / (screenWidth - 50)) * (sortedFeatures.current.length - 1));
+        const selectedFeature = sortedFeatures.current[index];
+        handleSongChange(selectedFeature.id); // Play song as slider moves
+      }
+    },
+  });
+}, [screenWidth]);
 
   useEffect(() => {
     const interval = setInterval(() => {
