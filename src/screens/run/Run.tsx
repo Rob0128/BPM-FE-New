@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
 import {
-  Platform,
   SafeAreaView,
   StatusBar,
   TouchableOpacity,
@@ -57,6 +56,14 @@ const SpotifyGreenButton = styled(TouchableOpacity)`
   border-radius: 25px;
   margin-bottom: 20px;
   align-items: center;
+`;
+
+const TickMark = styled.View`
+  width: 2px;
+  height: 20px;
+  background-color: #FFF;
+  position: absolute;
+  bottom: 0;
 `;
 
 interface AudioFeature {
@@ -167,66 +174,18 @@ const Home: React.FC = () => {
 
     if (audioFeatures && audioFeatures.length > 0) {
       sortedFeatures.current = audioFeatures.sort((a, b) => a.tempo - b.tempo);
-      const minBpm = sortedFeatures.current[0].tempo;
-      const maxBpm = sortedFeatures.current[sortedFeatures.current.length - 1].tempo;
-      const bpmRange = maxBpm - minBpm;
-      const thumbPositions = sortedFeatures.current.map((feature) => {
-        const bpmNormalized = (feature.tempo - minBpm) / bpmRange;
-        return bpmNormalized * (screenWidth - 50);
-      });
-      setThumbPosition(thumbPositions[0]);
-      setSongName(sortedFeatures.current[0].id);
+      updateThumbPositionAndSong(sortedFeatures.current[0].id); // Use a helper function for consistency
     }
   }, [audioFeatures, screenWidth]);
 
-  const [appState, setAppState] = useState<AppStateStatus>(AppState.currentState);
-
-  useEffect(() => {
-    const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      if (appState.match(/inactive|background/) && nextAppState === 'active' && !hasUpdatedOnForeground) {
-        console.log('App has come to the foreground!');
-        fetchDevices();
-        po.current.context_uri = state.currentPlaylistIdUpdate.current_playlist_id;
-        po.current.position_ms = 0;
-        fetchCurrentSong().then(() => {
-          updatePlaybackOffset();
-          startPlayback(po.current);
-        });
-        setHasUpdatedOnForeground(true);
-      }
-      setAppState(nextAppState);
-    };
-
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
-
-    return () => {
-      subscription.remove();
-    };
-  }, [appState, hasUpdatedOnForeground]);
-
-  useEffect(() => {
-    console.log('Devices:', devices);
-    if (devices.length === 0) {
-      setNoDeviceWarning(true);
-    } else if (devices.length > 1) {
-      setNoDeviceWarning(false);
-      const deviceOptions = devices.map((device) => ({
-        text: device.name,
-        onPress: () => handleDeviceSelection(device),
-      }));
-
-      Alert.alert(
-        'Select Device',
-        'Please select a device to play on:',
-        deviceOptions,
-        { cancelable: true }
-      );
-    } else {
-      setNoDeviceWarning(false);
-      handleDeviceSelection(devices[0]);
-      console.log('Only one device found:', devices[0]);
+  const updateThumbPositionAndSong = (songId: React.SetStateAction<string>) => {
+    const index = sortedFeatures.current.findIndex((feature) => feature.id === songId);
+    if (index !== -1) {
+      const thumbPos = (index / (sortedFeatures.current.length - 1)) * (screenWidth - 50);
+      setThumbPosition(thumbPos);
+      setSongName(songId);
     }
-  }, [devices]);
+  };
 
   useEffect(() => {
     panResponder.current = PanResponder.create({
@@ -244,7 +203,6 @@ const Home: React.FC = () => {
           const closestFeature = sortedFeatures.current.reduce((prev, curr) =>
             Math.abs(curr.tempo - bpm) < Math.abs(prev.tempo - bpm) ? curr : prev
           );
-          setSongName(closestFeature.id);
           handleSongChange(closestFeature.id); // Play song as slider moves
         }
       },
@@ -253,15 +211,9 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     if (currentSong && currentSong.item) {
-      const currentSongId = currentSong.item.id;
-      const index = sortedFeatures.current.findIndex((feature) => feature.id === currentSongId);
-      if (index !== -1) {
-        const thumbPos = (index / (sortedFeatures.current.length - 1)) * (screenWidth - 50);
-        setThumbPosition(thumbPos);
-      }
-      setSongName(currentSong.item.name);
+      updateThumbPositionAndSong(currentSong.item.id);
     }
-  }, [currentSong, sortedFeatures.current, screenWidth]);
+  }, [currentSong, screenWidth]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -279,45 +231,50 @@ const Home: React.FC = () => {
     );
   }
 
+  const renderTickMarks = () => {
+    return sortedFeatures.current.map((feature, index) => {
+      const left = (index / (sortedFeatures.current.length - 1)) * (screenWidth - 50);
+      return <TickMark key={feature.id} style={{ left }} />;
+    });
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }}>
       <StatusBar barStyle="light-content" />
-      <Text style={{ color: '#FFF', fontSize: 20, fontWeight: 'bold', marginBottom: 20 }}>Select BPM</Text>
-      <BpmSlider {...panResponder.current?.panHandlers}>
-        <BpmThumb style={{ left: thumbPosition }} />
-      </BpmSlider>
-      <SongName>{songName}</SongName>
-      {noDeviceWarning && <Text style={{ color: '#F00' }}>No devices available. Please check your Spotify devices.</Text>}
-      {showGoButton && (
+      {showGoButton ? (
         <SpotifyGreenButton onPress={handleChoosePress}>
-          <ButtonText>Go!</ButtonText>
+          <ButtonText>Go</ButtonText>
         </SpotifyGreenButton>
-      )}
-      {!showGoButton && (
-        <TouchableOpacity onPress={handlePause} style={styles.pauseButton}>
-          <Text style={{ color: '#FFF' }}>Pause Playback</Text>
-        </TouchableOpacity>
+      ) : (
+        <>
+          {noDeviceWarning && <Text style={{ color: 'red', marginBottom: 10 }}>No active Spotify device found. Please start playing music on a device.</Text>}
+          <BpmSlider {...(panResponder.current && panResponder.current.panHandlers)}>
+            {renderTickMarks()}
+            <BpmThumb style={{ left: thumbPosition }} />
+          </BpmSlider>
+          <SongName>{songName}</SongName>
+          <SpotifyGreenButton onPress={handlePause}>
+            <ButtonText>Pause</ButtonText>
+          </SpotifyGreenButton>
+          <SpotifyGreenButton onPress={handleRefreshPress}>
+            <ButtonText>Refresh Devices</ButtonText>
+          </SpotifyGreenButton>
+          <SpotifyGreenButton onPress={() => navigation?.navigate('ChooseDevice', { onDeviceSelected: handleDeviceSelection })}>
+            <ButtonText>Choose Device</ButtonText>
+          </SpotifyGreenButton>
+        </>
       )}
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  deviceItem: {
-    marginBottom: 10,
-  },
-  deviceName: {
-    color: 'white',
-  },
-  deviceNameBold: {
-    fontWeight: 'bold',
-  },
-  pauseButton: {
+  thumb: {
+    width: 50,
+    height: 50,
     backgroundColor: '#1DB954',
-    padding: 15,
     borderRadius: 25,
-    marginTop: 20,
-    alignItems: 'center',
+    position: 'absolute',
   },
 });
 
