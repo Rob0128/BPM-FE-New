@@ -7,12 +7,9 @@ import {
   Dimensions,
   PanResponder,
   PanResponderInstance,
-  Alert,
   View,
   StyleSheet,
   Linking,
-  AppState,
-  AppStateStatus
 } from 'react-native';
 import { MyContext } from '../../context/context';
 import styled from '@emotion/native';
@@ -26,12 +23,14 @@ import useFetchDevices from '../../hooks/use-fetchDevices';
 import { PlayOptions } from '../../types/playlist';
 import { Device } from '../../types/device';
 import usePausePlayback from '../../hooks/use-pausePlaylist';
+import useSkipToNextTrack  from '../../hooks/use-skipSongForward';
 
 const BpmSlider = styled.View`
-  width: 100%;
+  width: 90%;
   height: 50px;
   background-color: #333;
   position: relative;
+  border-radius: 5px;
 `;
 
 const BpmThumb = styled.View`
@@ -60,7 +59,7 @@ const SpotifyGreenButton = styled(TouchableOpacity)`
 
 const TickMark = styled.View`
   width: 2px;
-  height: 20px;
+  height: 100%;
   background-color: #FFF;
   position: absolute;
   bottom: 0;
@@ -77,19 +76,23 @@ const Home: React.FC = () => {
   const { audioFeatures, loading } = useGetAudioFeatures();
   const { startPlayback } = useStartPlayback();
   const { devices, fetchDevices, loading: loadingDevices, error } = useFetchDevices();
-  const { currentSong, fetchCurrentSong } = useGetCurrentSong();
+  const { currentSong, fetchCurrentSong, loadingCS, isPlayingCS } = useGetCurrentSong();
   const [thumbPosition, setThumbPosition] = useState(0);
-  const [songName, setSongName] = useState('');
+  const songNameRef = useRef<string>('');
+  const [songName, setSongName] = useState<string>('');
   const [noDeviceWarning, setNoDeviceWarning] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
   const [showGoButton, setShowGoButton] = useState(true);
   const [hasUpdatedOnForeground, setHasUpdatedOnForeground] = useState(false);
   const panResponder = useRef<PanResponderInstance | null>(null);
   const sortedFeatures = useRef<AudioFeature[]>([]);
+  const isPlayingRef = useRef<boolean>(false);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const { skipToNextTrack, loadingSN, errorSN } = useSkipToNextTrack();
   const po = useRef<PlayOptions>({
     context_uri: '',
     position_ms: 0,
-    offset: { position: 0 },  // Initial dummy value
+    offset: { position: 0 },
   });
   const { pausePlayback } = usePausePlayback();
   const screenWidth = Dimensions.get('window').width;
@@ -105,24 +108,29 @@ const Home: React.FC = () => {
   const handleSongChange = debounce((songId: string) => {
     const index = sortedFeatures.current.findIndex((feature) => feature.id === songId);
     if (index !== -1) {
+      songNameRef.current = songId;
+      setSongName(songId);
       po.current.offset = { position: index };
       po.current.context_uri = state.currentPlaylistIdUpdate.current_playlist_id;
       po.current.position_ms = 0;
       startPlayback(po.current);
-      setSongName(songId); // Update song name immediately when song changes
+       // Update song name immediately when song changes
     }
-  }, 300);
+  }, 100);
+
+  const handleSkipToNext = async () => {
+    await skipToNextTrack(); // Optionally pass device_id here
+  };
 
   const updatePlaybackOffset = () => {
     if (currentSong && state.teststringUpdate.test_string) {
       const currentSongId = currentSong.item.id;
       const playlistTracks = state.teststringUpdate.test_string;
       const index = playlistTracks.findIndex(trackId => trackId === currentSongId);
-      console.log('Index of current song:', index);
       if (index !== -1) {
         po.current.offset = { position: index };
       } else {
-        po.current.offset = { position: 0 };  // Default to first song if not found
+        po.current.offset = { position: 0 };
       }
     }
   };
@@ -130,12 +138,18 @@ const Home: React.FC = () => {
   const handleDeviceSelection = (device: Device) => {
     setSelectedDevice(device);
     setShowGoButton(false);
-    console.log('Selected device:', device);
   };
 
-  const handlePause = () => {
-    const deviceId = selectedDevice?.id;
-    pausePlayback(deviceId);
+  const handlePause = async () => {
+    try {
+      setIsPlaying(false);
+      const deviceId = selectedDevice?.id;
+      await pausePlayback(deviceId);
+      isPlayingRef.current = false;
+      await fetchCurrentSong();
+    } catch (error) {
+      console.error('Failed to pause playback:', error);
+    }
   };
 
   const handleRefreshPress = () => {
@@ -146,10 +160,23 @@ const Home: React.FC = () => {
     startPlayback(po.current);
   };
 
+  const handlePlay = async () => {
+    try {
+      setIsPlaying(true);
+      po.current.context_uri = state.currentPlaylistIdUpdate.current_playlist_id;
+      po.current.position_ms = 0;
+      updatePlaybackOffset();
+      await startPlayback(po.current);
+      isPlayingRef.current = true;
+      await fetchCurrentSong();
+
+    } catch (error) {
+      console.error('Failed to start playback:', error);
+    }
+  };
+
   const handleChoosePress = () => {
     const spotifyLink = "spotify:track:" + state.teststringUpdate.test_string[0];
-    console.log('Spotify link:', spotifyLink);
-
     Linking.openURL(spotifyLink).catch((err) => {
       console.error("Failed to open Spotify link:", err);
     });
@@ -173,16 +200,18 @@ const Home: React.FC = () => {
     startPlayback(po.current);
 
     if (audioFeatures && audioFeatures.length > 0) {
+      //TODO - maybe dont sort this here (or have a button for the user to decide)
       sortedFeatures.current = audioFeatures.sort((a, b) => a.tempo - b.tempo);
-      updateThumbPositionAndSong(sortedFeatures.current[0].id); // Use a helper function for consistency
+      updateThumbPositionAndSong(sortedFeatures.current[0].id);
     }
   }, [audioFeatures, screenWidth]);
 
-  const updateThumbPositionAndSong = (songId: React.SetStateAction<string>) => {
+  const updateThumbPositionAndSong = (songId: string) => {
     const index = sortedFeatures.current.findIndex((feature) => feature.id === songId);
     if (index !== -1) {
       const thumbPos = (index / (sortedFeatures.current.length - 1)) * (screenWidth - 50);
       setThumbPosition(thumbPos);
+      songNameRef.current = songId;
       setSongName(songId);
     }
   };
@@ -192,22 +221,26 @@ const Home: React.FC = () => {
       updateThumbPositionAndSong(currentSong.item.id);
     }
   }, [currentSong, screenWidth]);
-  
-useEffect(() => {
-  panResponder.current = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onPanResponderMove: (event, gestureState) => {
-      const thumbPos = Math.max(0, Math.min(gestureState.moveX, screenWidth - 50));
-      setThumbPosition(thumbPos);
 
-      if (sortedFeatures.current.length > 0) {
-        const index = Math.round((thumbPos / (screenWidth - 50)) * (sortedFeatures.current.length - 1));
-        const selectedFeature = sortedFeatures.current[index];
-        handleSongChange(selectedFeature.id); // Play song as slider moves
-      }
-    },
-  });
-}, [screenWidth]);
+  // useEffect(() => {
+  //   fetchCurrentSong();
+  // }, [currentSong, ]);
+
+  useEffect(() => {
+    panResponder.current = PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: (event, gestureState) => {
+        const thumbPos = Math.max(0, Math.min(gestureState.moveX, screenWidth - 50));
+        setThumbPosition(thumbPos);
+
+        if (sortedFeatures.current.length > 0) {
+          const index = Math.round((thumbPos / (screenWidth - 50)) * (sortedFeatures.current.length - 1));
+          const selectedFeature = sortedFeatures.current[index];
+          handleSongChange(selectedFeature.id);
+        }
+      },
+    });
+  }, [screenWidth]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -227,6 +260,9 @@ useEffect(() => {
 
   const renderTickMarks = () => {
     return sortedFeatures.current.map((feature, index) => {
+      if (index === 0) {
+        return null;
+      }
       const left = (index / (sortedFeatures.current.length - 1)) * (screenWidth - 50);
       return <TickMark key={feature.id} style={{ left }} />;
     });
@@ -246,16 +282,26 @@ useEffect(() => {
             {renderTickMarks()}
             <BpmThumb style={{ left: thumbPosition }} />
           </BpmSlider>
-          <SongName>{songName}</SongName>
-          <SpotifyGreenButton onPress={handlePause}>
-            <ButtonText>Pause</ButtonText>
+          <SongName>{currentSong?.item.name}</SongName>
+          {isPlayingCS ? (
+            <SpotifyGreenButton onPress={handlePause}>
+              <ButtonText>Pause</ButtonText>
+            </SpotifyGreenButton>
+          ) : (
+            <SpotifyGreenButton onPress={handlePlay}>
+              <ButtonText>Play</ButtonText>
+            </SpotifyGreenButton>
+          )}
+          <SpotifyGreenButton onPress={handleSkipToNext} disabled={loading}>
+          <ButtonText>Skip to Next Track</ButtonText>
           </SpotifyGreenButton>
-          <SpotifyGreenButton onPress={handleRefreshPress}>
-            <ButtonText>Refresh Devices</ButtonText>
-          </SpotifyGreenButton>
-          <SpotifyGreenButton onPress={() => navigation?.navigate('ChooseDevice', { onDeviceSelected: handleDeviceSelection })}>
-            <ButtonText>Choose Device</ButtonText>
-          </SpotifyGreenButton>
+          {devices.length > 1 ? (
+            <SpotifyGreenButton onPress={() => navigation?.navigate('ChooseDevice', { onDeviceSelected: handleDeviceSelection })}>
+              <ButtonText>Choose Device</ButtonText>
+            </SpotifyGreenButton>
+          ) : (
+            <Text></Text>
+          )}
         </>
       )}
     </SafeAreaView>

@@ -12,7 +12,8 @@ interface CurrentSong {
 const useGetCurrentSong = () => {
   const { state } = useContext(MyContext);
   const [currentSong, setCurrentSong] = useState<CurrentSong | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loadingCS, setLoading] = useState(true);
+  const [isPlayingCS, setIsPlaying] = useState(false);
 
   const fetchCurrentSong = useCallback(async () => {
     try {
@@ -27,6 +28,7 @@ const useGetCurrentSong = () => {
         const data = await response.json();
         console.log('yyaaaaaaaaaaaaaaaaayyy', data);
         setCurrentSong(data);
+        setIsPlaying(data.is_playing);
       } else {
         throw new Error('Failed to fetch current song');
       }
@@ -41,7 +43,7 @@ const useGetCurrentSong = () => {
     fetchCurrentSong();
   }, [fetchCurrentSong]);
 
-  return { currentSong, fetchCurrentSong, loading };
+  return { currentSong, fetchCurrentSong, loadingCS, isPlayingCS };
 };
 
 export default useGetCurrentSong;
