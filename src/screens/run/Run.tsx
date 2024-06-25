@@ -10,6 +10,9 @@ import {
   View,
   StyleSheet,
   Linking,
+  Alert,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
 import { MyContext } from '../../context/context';
 import styled from '@emotion/native';
@@ -23,7 +26,8 @@ import useFetchDevices from '../../hooks/use-fetchDevices';
 import { PlayOptions } from '../../types/playlist';
 import { Device } from '../../types/device';
 import usePausePlayback from '../../hooks/use-pausePlaylist';
-import useSkipToNextTrack  from '../../hooks/use-skipSongForward';
+import useSkipToNextTrack from '../../hooks/use-skipSongForward';
+import useSkipToPreviousTrack from '../../hooks/use-skipSongBackward';
 
 const BpmSlider = styled.View`
   width: 90%;
@@ -54,6 +58,14 @@ const SpotifyGreenButton = styled(TouchableOpacity)`
   padding: 15px 30px;
   border-radius: 25px;
   margin-bottom: 20px;
+  align-items: center;
+`;
+
+const SmallButton = styled(TouchableOpacity)`
+  background-color: #1DB954;
+  padding: 10px 20px;
+  border-radius: 20px;
+  margin: 0 10px;
   align-items: center;
 `;
 
@@ -89,6 +101,8 @@ const Home: React.FC = () => {
   const isPlayingRef = useRef<boolean>(false);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const { skipToNextTrack, loadingSN, errorSN } = useSkipToNextTrack();
+  const { skipToPreviousTrack, loadingSP, errorSP } = useSkipToPreviousTrack();
+
   const po = useRef<PlayOptions>({
     context_uri: '',
     position_ms: 0,
@@ -105,6 +119,56 @@ const Home: React.FC = () => {
     };
   };
 
+  const [appState, setAppState] = useState<AppStateStatus>(AppState.currentState);
+
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (appState.match(/inactive|background/) && nextAppState === 'active' && !hasUpdatedOnForeground) {
+        console.log('App has come to the foreground!');
+        fetchDevices();
+        po.current.context_uri = state.currentPlaylistIdUpdate.current_playlist_id;
+        po.current.position_ms = 0;
+        fetchCurrentSong().then(() => {
+          updatePlaybackOffset();
+          startPlayback(po.current);
+        });
+        setHasUpdatedOnForeground(true);
+      }
+      setAppState(nextAppState);
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      subscription.remove();
+    };
+  }, [appState, hasUpdatedOnForeground]);
+  
+  useEffect(() => {
+    console.log('devicccceesss', devices);
+    console.log('Devices:', devices);
+    if (devices.length === 0) {
+      setNoDeviceWarning(true);
+    } else if (devices.length > 1) {
+      setNoDeviceWarning(false);
+      const deviceOptions = devices.map((device) => ({
+        text: device.name,
+        onPress: () => handleDeviceSelection(device),
+      }));
+
+      Alert.alert(
+        'Select Device',
+        'Please select a device to play on:',
+        deviceOptions,
+        { cancelable: true }
+      );
+    } else {
+      setNoDeviceWarning(false);
+      handleDeviceSelection(devices[0]);
+      console.log('Only one device found:', devices[0]);
+    }
+  }, [devices]);
+
   const handleSongChange = debounce((songId: string) => {
     const index = sortedFeatures.current.findIndex((feature) => feature.id === songId);
     if (index !== -1) {
@@ -114,12 +178,18 @@ const Home: React.FC = () => {
       po.current.context_uri = state.currentPlaylistIdUpdate.current_playlist_id;
       po.current.position_ms = 0;
       startPlayback(po.current);
-       // Update song name immediately when song changes
+      // Update song name immediately when song changes
     }
   }, 100);
 
   const handleSkipToNext = async () => {
-    await skipToNextTrack(); // Optionally pass device_id here
+    await skipToNextTrack();
+    await fetchCurrentSong();
+  };
+
+  const handleSkipToPrevious = async () => {
+    await skipToPreviousTrack();
+    await fetchCurrentSong();
   };
 
   const updatePlaybackOffset = () => {
@@ -142,10 +212,11 @@ const Home: React.FC = () => {
 
   const handlePause = async () => {
     try {
-      setIsPlaying(false);
       const deviceId = selectedDevice?.id;
       await pausePlayback(deviceId);
+      setIsPlaying(false);
       isPlayingRef.current = false;
+      console.log('Paused playback');
       await fetchCurrentSong();
     } catch (error) {
       console.error('Failed to pause playback:', error);
@@ -163,14 +234,18 @@ const Home: React.FC = () => {
   const handlePlay = async () => {
     try {
       setIsPlaying(true);
+      isPlayingRef.current = true;
+      
       po.current.context_uri = state.currentPlaylistIdUpdate.current_playlist_id;
       po.current.position_ms = 0;
-      updatePlaybackOffset();
+      await updatePlaybackOffset();
       await startPlayback(po.current);
-      isPlayingRef.current = true;
+      
+      console.log('Started playback');
       await fetchCurrentSong();
-
     } catch (error) {
+      setIsPlaying(false);
+      isPlayingRef.current = false;
       console.error('Failed to start playback:', error);
     }
   };
@@ -186,7 +261,7 @@ const Home: React.FC = () => {
       po.current.position_ms = 0;
       updatePlaybackOffset();
       startPlayback(po.current);
-      setShowGoButton(false);  // Hide the Go button after pressing
+      setShowGoButton(false); // Hide the Go button after pressing
     } catch (error) {
       console.log(error);
     }
@@ -200,7 +275,7 @@ const Home: React.FC = () => {
     startPlayback(po.current);
 
     if (audioFeatures && audioFeatures.length > 0) {
-      //TODO - maybe dont sort this here (or have a button for the user to decide)
+      // TODO - maybe don't sort this here (or have a button for the user to decide)
       sortedFeatures.current = audioFeatures.sort((a, b) => a.tempo - b.tempo);
       updateThumbPositionAndSong(sortedFeatures.current[0].id);
     }
@@ -219,12 +294,10 @@ const Home: React.FC = () => {
   useEffect(() => {
     if (currentSong && currentSong.item) {
       updateThumbPositionAndSong(currentSong.item.id);
+      setIsPlaying(isPlayingCS);
+      isPlayingRef.current = isPlayingCS
     }
-  }, [currentSong, screenWidth]);
-
-  // useEffect(() => {
-  //   fetchCurrentSong();
-  // }, [currentSong, ]);
+  }, [currentSong, isPlayingCS, screenWidth]);
 
   useEffect(() => {
     panResponder.current = PanResponder.create({
@@ -283,25 +356,24 @@ const Home: React.FC = () => {
             <BpmThumb style={{ left: thumbPosition }} />
           </BpmSlider>
           <SongName>{currentSong?.item.name}</SongName>
-          {isPlayingCS ? (
-            <SpotifyGreenButton onPress={handlePause}>
-              <ButtonText>Pause</ButtonText>
-            </SpotifyGreenButton>
-          ) : (
+          <View style={styles.controlsContainer}>
+          <SmallButton onPress={handleSkipToPrevious}>
+            <ButtonText>{'<<'}</ButtonText>
+          </SmallButton>
+          
+          <View style={styles.playPauseContainer}>
             <SpotifyGreenButton onPress={handlePlay}>
               <ButtonText>Play</ButtonText>
             </SpotifyGreenButton>
-          )}
-          <SpotifyGreenButton onPress={handleSkipToNext} disabled={loading}>
-          <ButtonText>Skip to Next Track</ButtonText>
-          </SpotifyGreenButton>
-          {devices.length > 1 ? (
-            <SpotifyGreenButton onPress={() => navigation?.navigate('ChooseDevice', { onDeviceSelected: handleDeviceSelection })}>
-              <ButtonText>Choose Device</ButtonText>
+            <SpotifyGreenButton onPress={handlePause}>
+              <ButtonText>Pause</ButtonText>
             </SpotifyGreenButton>
-          ) : (
-            <Text></Text>
-          )}
+          </View>
+          
+          <SmallButton onPress={handleSkipToNext}>
+            <ButtonText>{'>>'}</ButtonText>
+          </SmallButton>
+        </View>
         </>
       )}
     </SafeAreaView>
@@ -309,12 +381,15 @@ const Home: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  thumb: {
-    width: 50,
-    height: 50,
-    backgroundColor: '#1DB954',
-    borderRadius: 25,
-    position: 'absolute',
+  controlsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  playPauseContainer: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    paddingTop: 80,
   },
 });
 
