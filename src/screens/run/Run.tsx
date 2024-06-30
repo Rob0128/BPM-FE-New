@@ -61,6 +61,14 @@ const SpotifyGreenButton = styled(TouchableOpacity)`
   align-items: center;
 `;
 
+const SpotifyBigGreenButton = styled(TouchableOpacity)`
+  background-color: #1DB954;
+  padding: 20px 40px;
+  border-radius: 25px;
+  margin-bottom: 20px;
+  align-items: center;
+`;
+
 const SmallButton = styled(TouchableOpacity)`
   background-color: #1DB954;
   padding: 10px 20px;
@@ -362,9 +370,9 @@ const Home: React.FC = () => {
           </SmallButton>
           
           <View style={styles.playPauseContainer}>
-            <SpotifyGreenButton onPress={handlePlay}>
+            <SpotifyBigGreenButton onPress={handlePlay}>
               <ButtonText>Play</ButtonText>
-            </SpotifyGreenButton>
+            </SpotifyBigGreenButton>
             <SpotifyGreenButton onPress={handlePause}>
               <ButtonText>Pause</ButtonText>
             </SpotifyGreenButton>
