@@ -93,7 +93,7 @@ interface AudioFeature {
 const Home: React.FC = () => {
   const navigation = useContext(NavigationContext);
   const { state } = useContext(MyContext);
-  const { audioFeatures, loading } = useGetAudioFeatures();
+  const { getAudioFeatures, audioFeatures, loading } = useGetAudioFeatures();
   const { startPlayback } = useStartPlayback();
   const { devices, fetchDevices, loading: loadingDevices, error } = useFetchDevices();
   const { currentSong, fetchCurrentSong, loadingCS, isPlayingCS } = useGetCurrentSong();
@@ -358,6 +358,7 @@ const Home: React.FC = () => {
         </SpotifyGreenButton>
       ) : (
         <>
+        <Text style={styles.BPMText}>BPM: {audioFeatures?.find((x) => currentSong?.item.id === x.id)?.tempo}</Text>
           {noDeviceWarning && <Text style={{ color: 'red', marginBottom: 10 }}>No active Spotify device found. Please start playing music on a device.</Text>}
           <BpmSlider {...(panResponder.current && panResponder.current.panHandlers)}>
             {renderTickMarks()}
@@ -398,6 +399,12 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     paddingTop: 80,
+  },
+  BPMText: {
+    alignItems: 'center',
+    fontSize: 26,
+    paddingBottom: 80,
+    color: '#fff',
   },
 });
 

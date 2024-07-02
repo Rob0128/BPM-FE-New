@@ -48,7 +48,7 @@ const useGetAudioFeatures = () => {
     };
   }, [getAudioFeatures]);
 
-  return { audioFeatures, loading };
+  return { getAudioFeatures, audioFeatures, loading };
 };
 
 export default useGetAudioFeatures;

@@ -27,29 +27,29 @@ const TempoPage = () => {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <TitleLarge>Choose your tempo</TitleLarge>
         <Card 
+          imageSource={require('../../assets/images/trendup.png')} 
+          text="Trending up" 
+          id="trendup" 
+          onPress={handleImagePress} 
+          isSelected={selectedImageId === 'trendup'} 
+        />
+        <Card 
           imageSource={require('../../assets/images/trendupdown.png')} 
-          text={state.teststringUpdate.test_string[0]} 
+          text="Trending up and back down"  
           id="trendupdown" 
           onPress={handleImagePress} 
           isSelected={selectedImageId === 'trendupdown'} 
         />
         <Card 
           imageSource={require('../../assets/images/trendstraight.png')} 
-          text={state.teststringUpdate.test_string[0]} 
+          text="Steady pace" 
           id="trendstraight" 
           onPress={handleImagePress} 
           isSelected={selectedImageId === 'trendstraight'} 
         />
         <Card 
-          imageSource={require('../../assets/images/trendup.png')} 
-          text={state.teststringUpdate.test_string[0]} 
-          id="trendup" 
-          onPress={handleImagePress} 
-          isSelected={selectedImageId === 'trendup'} 
-        />
-        <Card 
           imageSource={require('../../assets/images/trenddown.png')} 
-          text={state.teststringUpdate.test_string[0]} 
+          text="Trending down"  
           id="trenddown" 
           onPress={handleImagePress} 
           isSelected={selectedImageId === 'trenddown'} 

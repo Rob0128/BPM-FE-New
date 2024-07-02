@@ -4,6 +4,7 @@ import { MyContext } from '../context/context';
 interface CurrentSong {
   item: {
     name: string;
+    id: string;
     [key: string]: any;
   };
   [key: string]: any;
