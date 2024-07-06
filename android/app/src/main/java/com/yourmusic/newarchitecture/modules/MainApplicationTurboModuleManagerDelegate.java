@@ -1,4 +1,4 @@
-package com.beatrun.newarchitecture.modules;
+package com.BeatRunBPM.newarchitecture.modules;
 
 import com.facebook.jni.HybridData;
 import com.facebook.react.ReactPackage;

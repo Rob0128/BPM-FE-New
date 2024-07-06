@@ -1,4 +1,4 @@
-package com.beatrun;
+package com.BeatRunBPM;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;

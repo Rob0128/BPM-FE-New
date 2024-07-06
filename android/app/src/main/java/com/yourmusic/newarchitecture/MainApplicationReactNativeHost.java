@@ -1,4 +1,4 @@
-package com.beatrun.newarchitecture;
+package com.BeatRunBPM.newarchitecture;
 
 import android.app.Application;
 import androidx.annotation.NonNull;
@@ -19,9 +19,9 @@ import com.facebook.react.fabric.CoreComponentsRegistry;
 import com.facebook.react.fabric.EmptyReactNativeConfig;
 import com.facebook.react.fabric.FabricJSIModuleProvider;
 import com.facebook.react.uimanager.ViewManagerRegistry;
-import com.beatrun.BuildConfig;
-import com.beatrun.newarchitecture.components.MainComponentsRegistry;
-import com.beatrun.newarchitecture.modules.MainApplicationTurboModuleManagerDelegate;
+import com.BeatRunBPM.BuildConfig;
+import com.BeatRunBPM.newarchitecture.components.MainComponentsRegistry;
+import com.BeatRunBPM.newarchitecture.modules.MainApplicationTurboModuleManagerDelegate;
 import java.util.ArrayList;
 import java.util.List;
 

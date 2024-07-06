@@ -7,7 +7,7 @@ const authConfig = {
   clientId: '85a699fc623146a582314470ee52f0b3',
   // optional clien secret
   // clientSecret: 'client secret',
-  redirectUrl: 'com.beatrun://oauth/',
+  redirectUrl: 'com.BeatRunBPM://oauth/',
   scopes: ['playlist-modify-public', 'playlist-modify-private', 'playlist-read-private', 'user-library-read', 'user-read-playback-state', 'user-modify-playback-state'],
   serviceConfiguration: {
     authorizationEndpoint: 'https://accounts.spotify.com/authorize',
